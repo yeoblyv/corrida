@@ -31,6 +31,9 @@ Brightspace wins.
   of work that doesn't map to one person.
 - Bring `main` into your branch before opening a PR (merge or rebase), so
   conflicts get resolved on your branch, not on `main`.
+- Exact commands (clone, create your branch, pull before pushing, open a
+  PR, set up a new machine/VM) are in
+  [docs/git-cheatsheet.md](docs/git-cheatsheet.md).
 
 ## 3. Commits
 
@@ -44,18 +47,26 @@ Brightspace wins.
 
 ## 4. Pull requests & review
 
-Every merge into `main` goes through a PR. A PR merges only when:
+Every merge into `main` goes through a PR - no direct pushes to `main`.
+No mandatory review: you can merge your own PR once it's ready, nobody
+has to sign off first. This runs on trust, not enforcement - there's no
+consequence built in if someone merges something they didn't actually
+test, only a team that has to live with a broken `main`.
 
-1. The branch builds (`colcon build`) and runs without crashing, on
-   hardware or in simulation.
+A PR is ready to merge when:
+
+1. You've actually run it - built (`colcon build`) and exercised it on
+   hardware or in simulation, not just read the diff.
 2. Lint is clean, checked locally (`./scripts/lint.sh`) - the repo is
-   private, so there is no CI to catch this automatically; this check is
-   on the author and the reviewer.
-3. At least one other team member has reviewed and approved it.
-4. All conflicts with `main` are resolved on the feature branch.
+   private, so there is no CI to catch this for you.
+3. All conflicts with `main` are resolved on the feature branch.
+4. The PR description states what you tested and how (e.g. "ran on the
+   Create 3 in the hallway maze, 3/3 successful attempts") - this is
+   your statement that points 1-3 above are actually true, since nobody
+   else is checking.
 
-Keep PRs small enough to review in one sitting (a sensor driver, a planner
-node, a launch file) - not "all of this week's work."
+Keep PRs small enough that point 4's description stays honestly
+specific - not "all of this week's work."
 
 ## 5. Code style
 
@@ -155,5 +166,6 @@ uses IEEE's own numbered citation style instead (see `IEEE/README.md`).
 - [ ] New/changed logic has a test where it's testable outside the robot.
 - [ ] No secrets, VM images, or build artifacts staged.
 - [ ] Facts and adapted code carry source attribution per §9.
-- [ ] At least one reviewer approved.
+- [ ] PR description states what was tested and how - self-certified,
+      no review gate (§4).
 - [ ] Commit messages follow §3.

@@ -77,6 +77,7 @@ corrida/
 ├── scripts/                 build/lint helpers
 ├── docs/
 │   ├── REFERENCES.md         citation policy & bibliography (start here)
+│   ├── git-cheatsheet.md     day-to-day git commands (clone/branch/pull/push/PR)
 │   ├── course-materials/     archived course documents
 │   ├── adr/                  architecture decision records
 │   ├── learning-goals/       individual learning-goal + reflection pages
@@ -88,6 +89,8 @@ corrida/
 ## Working rules
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full git workflow, commit
-convention, code style, review requirements, and definition of done, and
-[docs/REFERENCES.md](docs/REFERENCES.md) for how every fact and every
-piece of adapted code gets cited.
+convention, code style, self-testing requirements, and definition of done;
+[docs/git-cheatsheet.md](docs/git-cheatsheet.md) for the day-to-day
+commands (clone, branch, pull, push, PR - including setting up a new
+VM); and [docs/REFERENCES.md](docs/REFERENCES.md) for how every fact and
+every piece of adapted code gets cited.
