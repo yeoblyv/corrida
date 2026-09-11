@@ -36,7 +36,7 @@ in `IEEE/` follows §0's exception instead.
   the first citation onward (Hanze University of Applied Sciences,
   Library, n.d.-b).
 - An in-text citation is never a substitute for the full entry in §5 (or
-  the in-code URL required by CONTRIBUTING §9) — it points *at* that
+  the in-code URL required by CONTRIBUTING §10) — it points *at* that
   entry, it doesn't replace it.
 
 ## 3. Reference-list entry format
@@ -54,7 +54,7 @@ Month Day, Year, from https://...
 ```
 
 **Software, driver, or library** (the form to mirror when code is
-adapted from it — see CONTRIBUTING §9):
+adapted from it — see CONTRIBUTING §10):
 
 ```
 Author or Organization. (Year). *Program name* (Version)
@@ -103,7 +103,7 @@ see §6. Don't pre-populate entries for sources nothing cites yet.)*
 2. Format it per §3.
 3. Insert it alphabetically in §5.
 4. Cite it in text per §2, or in the code comment per
-   [CONTRIBUTING.md §9](../CONTRIBUTING.md#9-source-attribution) — code
+   [CONTRIBUTING.md §10](../CONTRIBUTING.md#10-source-attribution) — code
    comments still carry a direct URL for a quick jump, but the source
    also gets a full §5 entry so the bibliography stays complete.
 

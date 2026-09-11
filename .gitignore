@@ -10,7 +10,10 @@ __pycache__/
 .venv/
 venv/
 
-# VM snapshots — local/shared-drive only, never git. See CONTRIBUTING.md #7.
+# Jupyter
+.ipynb_checkpoints/
+
+# VM snapshots — local/shared-drive only, never git. See CONTRIBUTING.md #8.
 vms/
 
 # Environment & secrets

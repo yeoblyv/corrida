@@ -74,7 +74,8 @@ date, Brightspace wins - update this table, the citation, and
 corrida/
 ├── src/                    ROS2 packages (colcon workspace) - see src/README.md
 ├── tests/                   pytest unit tests for hardware-independent logic
-├── scripts/                 build/lint helpers
+├── notebooks/                demos, exploration, cheatsheets - see notebooks/README.md
+├── scripts/                  build/lint helpers
 ├── docs/
 │   ├── REFERENCES.md         citation policy & bibliography (start here)
 │   ├── git-cheatsheet.md     day-to-day git commands (clone/branch/pull/push/PR)
