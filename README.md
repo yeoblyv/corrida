@@ -12,6 +12,7 @@
   <img alt="Hardware" src="https://img.shields.io/badge/hardware-iRobot%20Create%203%20%2B%20LiDAR-333333">
   <img alt="Status" src="https://img.shields.io/badge/status-active-2ea44f">
   <a href="docs/course-materials/"><img alt="Hanze SEVM25IP" src="https://img.shields.io/badge/Hanze-SEVM25IP-FF6600"></a>
+  <a href="LICENSE"><img alt="License: MIT (code) / CC BY 4.0 (docs)" src="https://img.shields.io/badge/license-MIT%20%2F%20CC%20BY%204.0-blue"></a>
 </p>
 
 Hanze Master Smart Systems Engineering, Introduction Project -
@@ -96,7 +97,9 @@ corrida/
 │   ├── adr/                  architecture decision records
 │   └── learning-goals/       individual learning-goal + reflection pages
 ├── IEEE/                    report draft (IEEE citation style, see IEEE/README.md)
-└── vms/                     local-only; VM snapshots are git-ignored, see CONTRIBUTING.md
+├── vms/                     local-only; VM snapshots are git-ignored, see CONTRIBUTING.md
+├── LICENSE                  MIT - code
+└── LICENSE-DOCS             CC BY 4.0 - report & documentation
 ```
 
 ## Working rules
@@ -107,3 +110,13 @@ convention, code style, self-testing requirements, and definition of done;
 commands (clone, branch, pull, push, PR - including setting up a new
 VM); and [docs/REFERENCES.md](docs/REFERENCES.md) for how every fact and
 every piece of adapted code gets cited.
+
+## License
+
+Source code (`src/`, `scripts/`, `notebooks/`, `tests/`) is **MIT** -
+see [LICENSE](LICENSE). The report and documentation (`IEEE/`, `docs/`)
+are **CC BY 4.0** - see [LICENSE-DOCS](LICENSE-DOCS), which also states
+the one thing a license can't grant: permission to use this work to
+satisfy your own coursework on this or an equivalent assignment. That's
+governed by Hanze's academic integrity policy, not by us. Rationale in
+[ADR-0002](docs/adr/0002-licensing.md).

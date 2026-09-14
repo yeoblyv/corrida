@@ -26,6 +26,10 @@ Brightspace wins.
 ## 2. Branching
 
 - `main` is always buildable and demo-able - never push straight to it.
+- Never rewrite `main`'s history once pushed (no `--amend` + force-push,
+  no rebase onto it) - a new commit fixes a mistake instead. This keeps
+  `main` safe to build on for everyone else, and keeps GitHub's own
+  push record intact.
 - Each member works on a personal branch (`yehor`, `marjan`, `daniel`,
   `mark`) or a short-lived `feat/<topic>` branch for a self-contained chunk
   of work that doesn't map to one person.
@@ -160,6 +164,9 @@ meeting minutes live in Microsoft Teams, per the team's own agreement
   anything.
 - `IEEE/` - the report draft. One current draft, versioned by git history,
   not by filename suffixes.
+- `LICENSE` (MIT, code) and `LICENSE-DOCS` (CC BY 4.0, report/docs) -
+  see [ADR-0002](docs/adr/0002-licensing.md) for why the split, and
+  README.md's License section for the summary.
 
 ## 10. Source attribution
 
