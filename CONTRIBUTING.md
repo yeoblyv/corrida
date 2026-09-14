@@ -5,7 +5,7 @@ documentation. Hardware summary and team roster live in `README.md`;
 technical and organizational decisions live in `docs/adr/`; the workshop's ROS2/Jazzy
 environment and AI-assistants behavior are defined in `AGENTS.md`; the
 citation standard every fact and adapted line of code follows is
-[docs/REFERENCES.md](docs/REFERENCES.md) (§9 below).
+[docs/REFERENCES.md](docs/REFERENCES.md) (§10 below).
 
 ## 1. Deadlines (drive everything below)
 
@@ -25,12 +25,20 @@ Brightspace wins.
 
 ## 2. Branching
 
-- `main` is always buildable and demo-able - never push straight to it.
+- `main` is always buildable and demo-able - never push code straight
+  to it (see §4 for what "code" means and the one exception to this).
+- Never rewrite `main`'s history once pushed (no `--amend` + force-push,
+  no rebase onto it) - a new commit fixes a mistake instead. This keeps
+  `main` safe to build on for everyone else, and keeps GitHub's own
+  push record intact.
 - Each member works on a personal branch (`yehor`, `marjan`, `daniel`,
   `mark`) or a short-lived `feat/<topic>` branch for a self-contained chunk
   of work that doesn't map to one person.
 - Bring `main` into your branch before opening a PR (merge or rebase), so
   conflicts get resolved on your branch, not on `main`.
+- Exact commands (clone, create your branch, pull before pushing, open a
+  PR, set up a new machine/VM) are in
+  [docs/git-cheatsheet.md](docs/git-cheatsheet.md).
 
 ## 3. Commits
 
@@ -44,18 +52,37 @@ Brightspace wins.
 
 ## 4. Pull requests & review
 
-Every merge into `main` goes through a PR. A PR merges only when:
+**This applies to code** - `src/`, `scripts/`, `notebooks/`, `tests/`.
+Documentation and governance files (`README.md`, `CONTRIBUTING.md`,
+`AGENTS.md`, `docs/`, `IEEE/`, `LICENSE`, `LICENSE-DOCS`) can be pushed
+directly to `main` by the GitHub role (Yehor, per
+[ADR-0001](docs/adr/0001-team-roles-and-working-agreement.md)) - no
+branch or PR needed for those. This is a narrow exception for
+administering the repository itself, not a general pass - it doesn't
+extend to code, and it doesn't make the GitHub role's technical calls
+worth more than anyone else's (ADR-0001 is explicit that roles aren't a
+hierarchy).
 
-1. The branch builds (`colcon build`) and runs without crashing, on
-   hardware or in simulation.
+For code: every merge into `main` goes through a PR - no direct pushes.
+No mandatory review: you can merge your own PR once it's ready, nobody
+has to sign off first. This runs on trust, not enforcement - there's no
+consequence built in if someone merges something they didn't actually
+test, only a team that has to live with a broken `main`.
+
+A PR is ready to merge when:
+
+1. You've actually run it - built (`colcon build`) and exercised it on
+   hardware or in simulation, not just read the diff.
 2. Lint is clean, checked locally (`./scripts/lint.sh`) - the repo is
-   private, so there is no CI to catch this automatically; this check is
-   on the author and the reviewer.
-3. At least one other team member has reviewed and approved it.
-4. All conflicts with `main` are resolved on the feature branch.
+   private, so there is no CI to catch this for you.
+3. All conflicts with `main` are resolved on the feature branch.
+4. The PR description states what you tested and how (e.g. "ran on the
+   Create 3 in the hallway maze, 3/3 successful attempts") - this is
+   your statement that points 1-3 above are actually true, since nobody
+   else is checking.
 
-Keep PRs small enough to review in one sitting (a sensor driver, a planner
-node, a launch file) - not "all of this week's work."
+Keep PRs small enough that point 4's description stays honestly
+specific - not "all of this week's work."
 
 ## 5. Code style
 
@@ -78,7 +105,45 @@ node, a launch file) - not "all of this week's work."
   verified manually before merging; say how you verified it in the PR
   description.
 
-## 7. Repository hygiene
+## 7. Notebooks
+
+Jupyter notebooks are welcome for three specific jobs — not as a
+substitute for the actual ROS2 code:
+
+- **`notebooks/demos/`** — a finished notebook that shows a piece of
+  work end-to-end, outputs (plots, printed results) kept on purpose -
+  e.g. "LiDAR scan to wall detection, visualized" or a replay of a maze
+  run. Good material to point the report or the progress presentation at
+  instead of re-deriving screenshots.
+- **`notebooks/exploration/`** — working out something labor-intensive
+  before it becomes real code: the maze-solving algorithm, a sensor
+  filter, a coordinate transform - plots and dead ends included. Once
+  the approach settles, it graduates into `src/` as tested code (§6);
+  the notebook can stay as a record of how you got there, or get deleted
+  once it's served its purpose.
+- **`notebooks/cheatsheets/`** — runnable reference notes for anything
+  easier to remember with a live example than with prose (what a QoS
+  profile actually does to message delivery, a `LaserScan` message's
+  fields with a real scan printed out). Same spirit as
+  [docs/git-cheatsheet.md](docs/git-cheatsheet.md), but for things worth
+  actually running.
+
+Rules:
+
+- A notebook never ships as the only copy of logic that runs on the
+  robot - if it's not in `src/` as a proper package, it doesn't count as
+  "done" for the maze run.
+- First cell is Markdown: what the notebook does, how to run it, and
+  what kernel/environment it needs (plain Python vs. one with `rclpy`
+  sourced).
+- Clear outputs before committing anything in `notebooks/exploration/`
+  once they're large or no longer meaningful (`Kernel > Restart & Clear
+  Output`); keep outputs in `notebooks/demos/` on purpose - that's the
+  point of a demo.
+- Code adapted from elsewhere follows §10's attribution rule, in a
+  Markdown or code cell - a notebook is not exempt.
+
+## 8. Repository hygiene
 
 - Never commit: build artifacts (`build/`, `install/`, `log/`), virtual
   environments, `.pyc` files, editor/OS files, secrets, Wi-Fi credentials,
@@ -88,26 +153,34 @@ node, a launch file) - not "all of this week's work."
 - If you used `git add .` or `git add -A`, check `git status` before
   committing - confirm nothing unexpected got staged.
 
-## 8. Documentation
+## 9. Documentation
+
+GitHub holds the code and what documents it; day-to-day planning and
+meeting minutes live in Microsoft Teams, per the team's own agreement
+(meeting #1, 2026-09-11) - don't duplicate them here.
 
 - `docs/adr/` - one file per non-trivial technical or organizational
   decision (ROS2 distro, planning algorithm, LiDAR driver choice, team
   roles), from `docs/adr/TEMPLATE.md`. Numbered sequentially, never
   edited after acceptance - a changed decision is a new ADR that
   supersedes the old one.
-- `docs/learning-goals/` and `docs/meeting-notes/` - individual and team
-  notes tied to the dates in §1.
+- `docs/learning-goals/` - individual learning-goal and reflection
+  drafts, tied to the dates in §1 (submitted to Brightspace, not this
+  repo - see the folder itself).
 - `docs/course-materials/` - original course documents (kickoff slides,
   assignment sheets, rubrics), archived as a practical copy. Cite them as
   personal communication per `docs/REFERENCES.md` §4, not as a reference
-  list entry - see §9.
+  list entry - see §10.
 - `docs/REFERENCES.md` - the repo's single citation standard (APA 7th,
   per Hanze's library guide) and bibliography. Read this before citing
   anything.
 - `IEEE/` - the report draft. One current draft, versioned by git history,
   not by filename suffixes.
+- `LICENSE` (MIT, code) and `LICENSE-DOCS` (CC BY 4.0, report/docs) -
+  see [ADR-0002](docs/adr/0002-licensing.md) for why the split, and
+  README.md's License section for the summary.
 
-## 9. Source attribution
+## 10. Source attribution
 
 One standard, repo-wide: **APA, 7th edition**, per Hanze's own library
 guide - full policy, in-text formats, and the bibliography itself live in
@@ -148,12 +221,13 @@ uses IEEE's own numbered citation style instead (see `IEEE/README.md`).
   needs no citation - this rule is for content that came *from*
   somewhere specific, not a blanket citation requirement on all code.
 
-## 10. Definition of done (per PR)
+## 11. Definition of done (per code PR)
 
 - [ ] Builds clean (`colcon build`).
 - [ ] Lint clean, checked locally (`./scripts/lint.sh`).
 - [ ] New/changed logic has a test where it's testable outside the robot.
 - [ ] No secrets, VM images, or build artifacts staged.
-- [ ] Facts and adapted code carry source attribution per §9.
-- [ ] At least one reviewer approved.
+- [ ] Facts and adapted code carry source attribution per §10.
+- [ ] PR description states what was tested and how - self-certified,
+      no review gate (§4).
 - [ ] Commit messages follow §3.

@@ -1,0 +1,40 @@
+Report and documentation license
+=================================
+
+Everything under `IEEE/` and `docs/` in this repository - the report,
+architecture decision records, and other written documentation - is
+licensed under the **Creative Commons Attribution 4.0 International
+License (CC BY 4.0)**, except where noted below.
+
+Full legal text: https://creativecommons.org/licenses/by/4.0/legalcode
+Human-readable summary: https://creativecommons.org/licenses/by/4.0/
+
+In short: you may copy, redistribute, and adapt this material for any
+purpose, including commercially, as long as you give appropriate credit,
+provide a link to the license, and indicate if changes were made.
+
+Suggested attribution:
+
+  "Corrida - Robot Maze Navigation (Team 6)" by D. C. Nwadike,
+  M. Rahimof, M. Rijpstra & Ye. Oblyvantsov, Hanze University of Applied
+  Sciences, licensed under CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/).
+  Source: https://github.com/yeoblyv/corrida
+
+Source code (`src/`, `scripts/`, `notebooks/`, `tests/`) is licensed
+separately, under MIT - see [LICENSE](LICENSE).
+
+Exception: [docs/course-materials/](docs/course-materials/) contains
+material distributed by the course (Hanze University of Applied
+Sciences), not authored by this team. It is archived here for internal
+traceability only (see docs/REFERENCES.md §4) and is not covered by
+either license in this repository - it remains the property of its
+original authors.
+
+A note on reuse within this course: this license governs copyright, not
+academic integrity. It does not authorize using this work, in whole or
+in part, to satisfy your own coursework for this or an equivalent
+assignment - that is governed by Hanze's academic integrity policy, and
+a license from us does not override it. If you are a student on this or
+a related course, check with your own course coordinator before reusing
+any of this beyond reading it for reference.

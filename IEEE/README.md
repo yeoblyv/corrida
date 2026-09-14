@@ -5,6 +5,9 @@ IEEE conference format, max. 6 pages (E. Bergsma, F. N. Martins, &
 F. J. Guzman, personal communication, September 11, 2026; see
 [docs/course-materials/](../docs/course-materials/), slide 3).
 
+- Everyone writes their own section on their own progress; Yehor
+  compiles the final version (team meeting #1, 2026-09-11 - see
+  [ADR-0001](../docs/adr/0001-team-roles-and-working-agreement.md)).
 - Keep one current draft in this folder (source file, e.g. LaTeX or Word,
   plus the exported PDF); rely on git history for versions, not filenames
   like `report_v2_final_FINAL.docx`.
