@@ -25,7 +25,8 @@ Brightspace wins.
 
 ## 2. Branching
 
-- `main` is always buildable and demo-able - never push straight to it.
+- `main` is always buildable and demo-able - never push code straight
+  to it (see §4 for what "code" means and the one exception to this).
 - Never rewrite `main`'s history once pushed (no `--amend` + force-push,
   no rebase onto it) - a new commit fixes a mistake instead. This keeps
   `main` safe to build on for everyone else, and keeps GitHub's own
@@ -51,7 +52,18 @@ Brightspace wins.
 
 ## 4. Pull requests & review
 
-Every merge into `main` goes through a PR - no direct pushes to `main`.
+**This applies to code** - `src/`, `scripts/`, `notebooks/`, `tests/`.
+Documentation and governance files (`README.md`, `CONTRIBUTING.md`,
+`AGENTS.md`, `docs/`, `IEEE/`, `LICENSE`, `LICENSE-DOCS`) can be pushed
+directly to `main` by the GitHub role (Yehor, per
+[ADR-0001](docs/adr/0001-team-roles-and-working-agreement.md)) - no
+branch or PR needed for those. This is a narrow exception for
+administering the repository itself, not a general pass - it doesn't
+extend to code, and it doesn't make the GitHub role's technical calls
+worth more than anyone else's (ADR-0001 is explicit that roles aren't a
+hierarchy).
+
+For code: every merge into `main` goes through a PR - no direct pushes.
 No mandatory review: you can merge your own PR once it's ready, nobody
 has to sign off first. This runs on trust, not enforcement - there's no
 consequence built in if someone merges something they didn't actually
@@ -209,7 +221,7 @@ uses IEEE's own numbered citation style instead (see `IEEE/README.md`).
   needs no citation - this rule is for content that came *from*
   somewhere specific, not a blanket citation requirement on all code.
 
-## 11. Definition of done (per PR)
+## 11. Definition of done (per code PR)
 
 - [ ] Builds clean (`colcon build`).
 - [ ] Lint clean, checked locally (`./scripts/lint.sh`).
