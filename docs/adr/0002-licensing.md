@@ -48,8 +48,4 @@ before reusing anything; mitigated by stating it plainly in
 This ADR does not itself make the repository public - that remains a
 separate decision.
 
-Drafted by Yehor (GitHub role, per ADR-0001), not yet ratified by the
-whole team - bring it to the next meeting (Marjan schedules, Daniel
-records) before flipping this to **Accepted**. `LICENSE` and
-`LICENSE-DOCS` already exist as drafts so the team can read the actual
-text beforehand, not just this summary.
+Drafted by Yehor - must be discussed at the meeting before flipping this to **Accepted**.
