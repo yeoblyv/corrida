@@ -139,13 +139,18 @@ Rules:
 
 ## 9. Documentation
 
+GitHub holds the code and what documents it; day-to-day planning and
+meeting minutes live in Microsoft Teams, per the team's own agreement
+(meeting #1, 2026-09-11) - don't duplicate them here.
+
 - `docs/adr/` - one file per non-trivial technical or organizational
   decision (ROS2 distro, planning algorithm, LiDAR driver choice, team
   roles), from `docs/adr/TEMPLATE.md`. Numbered sequentially, never
   edited after acceptance - a changed decision is a new ADR that
   supersedes the old one.
-- `docs/learning-goals/` and `docs/meeting-notes/` - individual and team
-  notes tied to the dates in §1.
+- `docs/learning-goals/` - individual learning-goal and reflection
+  drafts, tied to the dates in §1 (submitted to Brightspace, not this
+  repo - see the folder itself).
 - `docs/course-materials/` - original course documents (kickoff slides,
   assignment sheets, rubrics), archived as a practical copy. Cite them as
   personal communication per `docs/REFERENCES.md` §4, not as a reference

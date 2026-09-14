@@ -23,8 +23,8 @@ repository gets that exception.
 Every contributor — human or AI agent (see
 [AGENTS.md, Golden Rule 6](../AGENTS.md#3-golden-rules)) — for every
 artifact: `README.md`, `CONTRIBUTING.md`, ADRs, code comments and
-docstrings, commit messages that state a fact, meeting notes. The report
-in `IEEE/` follows §0's exception instead.
+docstrings, commit messages that state a fact. The report in `IEEE/`
+follows §0's exception instead.
 
 ## 2. In-text citation (everywhere except `IEEE/`)
 

@@ -5,34 +5,33 @@
 
 ## Context
 
-A four-person team needs a clear point of contact for each recurring
-concern - talking to tutors, sequencing day-to-day work, keeping the
-repository/documentation/report to a standard, and researching the
-problem domain - so that none of these default to "whoever notices
-first." At the same time, the team wants to avoid a hierarchy that lets
-role labels substitute for actually building the robot software
-together.
+At the team's first meeting (2026-09-11), roles were assigned so each
+recurring concern - leading the team, planning, communication, keeping
+minutes, the report, the repository, presenting - has a named owner
+instead of defaulting to "whoever notices first." Programming stays a
+shared effort; the role split doesn't gate it.
 
 ## Decision
 
-Each member holds a primary area of accountability, on top of - not
-instead of - equal participation in building the software:
+Each member holds a named role, on top of - not instead of - equal
+participation in building the software:
 
-- **Project lead** - strategic decisions, organizational coordination,
-  primary point of contact with tutors and stakeholders.
-- **Tactical planning** - day-to-day task sequencing and prioritization;
-  shares communication duties with the project lead.
-- **Repository & standards** - owns the repository (structure, git
-  workflow, `CONTRIBUTING.md`, `AGENTS.md`, the citation standard), the
-  IEEE report's process and formatting, and technical support across
-  both hardware and software.
-- **Research** - investigates the problem domain and prior art; shares
-  communication duties, and holds standing physical access to the robot
-  for hands-on testing at any time.
+- **Leader (Mark)** - overall direction for the team.
+- **Planning & communication (Marjan)** - day-to-day task sequencing and
+  the team's main point of contact.
+- **Meeting minutes (Daniel)** - keeps the record of what was decided at
+  each meeting.
+- **GitHub (Yehor)** - owns the repository: structure, git workflow,
+  `CONTRIBUTING.md`/`AGENTS.md`, the citation standard.
+- **Report** - everyone writes their own section on their own progress;
+  Yehor compiles the final version.
+- **Programming** - everyone contributes; how the work splits is decided
+  as the project moves into implementation.
+- **Presentation** - everyone presents the part they made.
 
 Current holders are recorded in `README.md`'s team section, not here -
-this ADR records the *role structure and its intent*, so it doesn't need
-a new revision every time a person changes seats.
+this ADR records the *role structure*, so it doesn't need a new revision
+every time a person changes seats.
 
 Every member is expected to contribute to the actual software roughly
 equally. The roles above assign accountability for a concern, not
@@ -41,9 +40,9 @@ to write code, touch the robot, or make a technical call.
 
 ## Consequences
 
-Gains: a named owner for organizational, tactical, documentation/support,
-and research concerns; a standing answer to "who do I ask about X"
-without waiting on the whole team.
+Gains: a named owner for leadership, planning/communication, minutes,
+and the repository; a standing answer to "who do I ask about X" without
+waiting on the whole team.
 
 Costs: role labels can calcify into a hierarchy if nobody actively
 guards against it. If contribution to the codebase becomes visibly

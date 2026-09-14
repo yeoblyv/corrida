@@ -1,6 +1,20 @@
-# Corrida - Robot Maze Navigation (Team 6)
+<p align="center">
+  <img src="docs/assets/logo.png" alt="Corrida logo - an iRobot Create 3 with horns" width="180">
+</p>
 
-Hanze Master Smart Systems Engineering, Introduction Project - 
+<h1 align="center">Corrida</h1>
+<p align="center"><i>Robot maze navigation — Team 6</i></p>
+
+<p align="center">
+  <a href="https://docs.ros.org/en/jazzy/"><img alt="ROS 2 Jazzy" src="https://img.shields.io/badge/ROS%202-Jazzy%20Jalisco-22314E?logo=ros&logoColor=white"></a>
+  <a href="https://releases.ubuntu.com/24.04/"><img alt="Ubuntu 24.04" src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white"></a>
+  <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white">
+  <img alt="Hardware" src="https://img.shields.io/badge/hardware-iRobot%20Create%203%20%2B%20LiDAR-333333">
+  <img alt="Status" src="https://img.shields.io/badge/status-active-2ea44f">
+  <a href="docs/course-materials/"><img alt="Hanze SEVM25IP" src="https://img.shields.io/badge/Hanze-SEVM25IP-FF6600"></a>
+</p>
+
+Hanze Master Smart Systems Engineering, Introduction Project -
 Semester 1, 2026/2027. Program an iRobot Create 3 to autonomously navigate
 an unknown maze, fusing its IR proximity sensors and a self-installed LiDAR, via ROS2.
 
@@ -35,15 +49,13 @@ citation policy in [docs/REFERENCES.md](docs/REFERENCES.md).
 
 ## Team - Group 6
 
-* **Mark Rijpstra** - project lead: strategic decisions, organizational
-  coordination, primary tutor/stakeholder contact.
-* **Marjan Rahimof** - tactical planning: day-to-day task sequencing,
-  shares communication duties with the lead.
-* **Yehor Oblyvantsov** - repository & standards: repo/git workflow,
-  `CONTRIBUTING.md`/`AGENTS.md`, IEEE report process, hardware and
-  software technical support.
-* **Daniel Chiemezie Nwadike** - research: problem-domain investigation,
-  shares communication duties, standing physical access to the robot.
+* **Mark Rijpstra** - leader: overall direction for the team.
+* **Marjan Rahimof** - planning & communication: day-to-day task
+  sequencing, main point of contact.
+* **Yehor Oblyvantsov** - GitHub: repository, git workflow,
+  `CONTRIBUTING.md`/`AGENTS.md`, compiles the final report.
+* **Daniel Chiemezie Nwadike** - meeting minutes: keeps the record of
+  what's decided at each meeting.
 * Tutor: Ewout Bergsma.
 
 Roles are primary accountability, not a coding hierarchy - everyone
@@ -79,10 +91,10 @@ corrida/
 ├── docs/
 │   ├── REFERENCES.md         citation policy & bibliography (start here)
 │   ├── git-cheatsheet.md     day-to-day git commands (clone/branch/pull/push/PR)
+│   ├── assets/                images used in docs (e.g. the logo)
 │   ├── course-materials/     archived course documents
 │   ├── adr/                  architecture decision records
-│   ├── learning-goals/       individual learning-goal + reflection pages
-│   └── meeting-notes/        team meeting notes
+│   └── learning-goals/       individual learning-goal + reflection pages
 ├── IEEE/                    report draft (IEEE citation style, see IEEE/README.md)
 └── vms/                     local-only; VM snapshots are git-ignored, see CONTRIBUTING.md
 ```
