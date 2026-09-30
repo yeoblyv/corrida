@@ -92,6 +92,7 @@ corrida/
 ├── docs/
 │   ├── REFERENCES.md         citation policy & bibliography (start here)
 │   ├── git-cheatsheet.md     day-to-day git commands (clone/branch/pull/push/PR)
+│   ├── raspberry-pi-users.md adding a team member's account on the robot's Pi
 │   ├── assets/                images used in docs (e.g. the logo)
 │   ├── course-materials/     archived course documents
 │   ├── adr/                  architecture decision records
