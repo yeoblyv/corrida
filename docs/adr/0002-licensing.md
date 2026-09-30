@@ -1,6 +1,6 @@
 # ADR-0002: License the repository, split by content type
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-14
 
 ## Context
@@ -47,5 +47,3 @@ before reusing anything; mitigated by stating it plainly in
 
 This ADR does not itself make the repository public - that remains a
 separate decision.
-
-Drafted by Yehor - must be discussed at the meeting before flipping this to **Accepted**.

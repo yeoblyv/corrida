@@ -9,9 +9,9 @@ code style, definition of done) see [CONTRIBUTING.md](../CONTRIBUTING.md)
 | GitHub username | Name | Branch to use (`<yourname>` below) |
 | --- | --- | --- |
 | `@mr-hanze` | Mark Rijpstra | `mark` |
-| `@mrahimof` | Marjan Rahimof | `marjan` |
-| `@Danisnicee` | Daniel Chiemezie Nwadike | `daniel` |
-| *(repo owner)* | Yehor Oblyvantsov | `yehor` |
+| `@mrahimof` | Marjan Rahimof | `Marjan` |
+| `@Danisnicee` | Daniel Chiemezie Nwadike | `Daniel` |
+| `@yeoblyv` | Yehor Oblyvantsov | `yehor` |
 
 Every `<yourname>` placeholder below is the branch name in the right
 column — your first name, lowercase — **not** your GitHub username. For
