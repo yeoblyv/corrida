@@ -52,9 +52,10 @@
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    # upstream 0.5 m / 0.5 rad, smaller steps for a small indoor maze
-    minimum_travel_distance: 0.2
-    minimum_travel_heading: 0.2
+    # upstream 0.5 m / 0.5 rad. At 0 a robot that stands still still adds a scan every
+    # minimum_time_interval, otherwise it gives slam one scan and the far cells stay unknown.
+    minimum_travel_distance: 0.0
+    minimum_travel_heading: 0.0
     check_min_dist_and_heading_precisely: false
     scan_buffer_size: 10
     scan_buffer_maximum_scan_distance: 10.0
