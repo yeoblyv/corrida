@@ -88,6 +88,9 @@ in text (§6).
 
 - iRobot Corporation. (n.d.). *iRobot® Create® 3 Docs*. Retrieved
   September 11, 2026, from https://iroboteducation.github.io/create3_docs/
+- Macenski, S. (2026). *slam_toolbox* (Version 2.8.4) [Computer software].
+  GitHub. Retrieved October 2, 2026, from
+  https://github.com/SteveMacenski/slam_toolbox
 - Slamtec. (n.d.). *RPLIDAR A1 low cost 360 degree laser range scanner:
   Introduction and datasheet* (Model A1M8). Retrieved October 2, 2026, from
   https://www.slamtec.com/en/support

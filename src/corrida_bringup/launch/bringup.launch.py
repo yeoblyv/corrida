@@ -28,5 +28,10 @@ def generate_launch_description() -> LaunchDescription:
             PathJoinSubstitution([FindPackageShare("corrida_bringup"), "launch", "lidar.launch.py"])
         )
     )
-    stack = GroupAction([PushRosNamespace(LaunchConfiguration("namespace")), lidar])
+    slam = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare("corrida_bringup"), "launch", "slam.launch.py"])
+        )
+    )
+    stack = GroupAction([PushRosNamespace(LaunchConfiguration("namespace")), lidar, slam])
     return LaunchDescription([namespace, stack])

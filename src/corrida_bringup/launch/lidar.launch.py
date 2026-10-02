@@ -65,6 +65,10 @@ def generate_launch_description() -> LaunchDescription:
             "--yaw",
             LaunchConfiguration("lidar_yaw"),
         ],
+        # The Create 3 tf lives inside the robot namespace (the namespace goes in front of
+        # every topic of the robot), so this transform has to go to the same tf_static:
+        # https://iroboteducation.github.io/create3_docs/setup/multi-robot/
+        remappings=[("/tf_static", "tf_static")],
     )
 
     return LaunchDescription([serial_port, serial_baudrate, lidar_yaw, driver, mount_tf])
