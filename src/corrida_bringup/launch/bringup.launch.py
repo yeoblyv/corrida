@@ -9,9 +9,11 @@ on the Raspberry Pi, in a VM or in simulation.
 """
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import PushRosNamespace
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -21,5 +23,10 @@ def generate_launch_description() -> LaunchDescription:
         default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value="/robot_10"),
         description="Namespace prepended to every node and topic of the robot stack.",
     )
-    stack = GroupAction([PushRosNamespace(LaunchConfiguration("namespace"))])
+    lidar = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare("corrida_bringup"), "launch", "lidar.launch.py"])
+        )
+    )
+    stack = GroupAction([PushRosNamespace(LaunchConfiguration("namespace")), lidar])
     return LaunchDescription([namespace, stack])

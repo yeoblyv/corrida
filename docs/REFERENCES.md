@@ -88,6 +88,12 @@ in text (§6).
 
 - iRobot Corporation. (n.d.). *iRobot® Create® 3 Docs*. Retrieved
   September 11, 2026, from https://iroboteducation.github.io/create3_docs/
+- Slamtec. (n.d.). *RPLIDAR A1 low cost 360 degree laser range scanner:
+  Introduction and datasheet* (Model A1M8). Retrieved October 2, 2026, from
+  https://www.slamtec.com/en/support
+- Slamtec. (2025). *rplidar_ros* (Version 2.1.0) [Computer software].
+  GitHub. Retrieved October 2, 2026, from
+  https://github.com/Slamtec/rplidar_ros
 
 *(Add ROS 2 Jazzy docs, the Foxglove docs, Webots/Gazebo docs, and any
 driver or library the team's code actually adapts from, as they're used —
