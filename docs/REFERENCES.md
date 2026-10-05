@@ -40,6 +40,13 @@ Author or Organization. (Year). *Name* (Version) [Computer software].
 Publisher. Retrieved Month Day, Year, from https://...
 ```
 
+Paper in conference proceedings:
+
+```
+Author, A. (Year). Title of the paper. In *Name of the proceedings*
+(pp. first-last). Publisher. https://doi.org/...
+```
+
 ## 4. Course material
 
 Slides, lectures and emails that people outside the course can't look up
@@ -56,6 +63,9 @@ September 11, 2026)
 Alphabetical by author. Add a source when you first use it, and open the
 page yourself before you add it.
 
+- Alvarez, C. (2026). *explore_lite* (Version 1.0.0) [Computer software].
+  GitHub. Retrieved October 5, 2026, from
+  https://github.com/robo-friends/m-explore-ros2
 - Hanze University of Applied Sciences, Library. (n.d.). *APA guidelines
   (7th)*. Retrieved September 11, 2026, from
   https://libguides.hanze.nl/apa_guidelines_7
@@ -72,3 +82,7 @@ page yourself before you add it.
   https://github.com/Slamtec/rplidar_ros
 - Ternaris. (2026). *rosbags* (Version 0.11.5) [Computer software].
   Retrieved October 4, 2026, from https://ternaris.gitlab.io/rosbags/
+- Yamauchi, B. (1997). A frontier-based approach for autonomous
+  exploration. In *Proceedings 1997 IEEE International Symposium on
+  Computational Intelligence in Robotics and Automation CIRA'97*
+  (pp. 146-151). IEEE. https://doi.org/10.1109/CIRA.1997.613851
