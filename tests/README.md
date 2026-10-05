@@ -1,10 +1,7 @@
 # tests/
 
-`pytest` unit tests for logic that doesn't require ROS2 or the physical
-robot: maze-solving algorithms, sensor-data filtering, coordinate
-transforms. Mirrors the package layout under `src/`.
-
-Run locally:
+`pytest` tests for logic that doesn't need ROS or the robot, like maze
+solving, sensor filtering and coordinate maths.
 
 ```bash
 pytest tests/

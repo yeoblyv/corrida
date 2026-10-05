@@ -1,15 +1,21 @@
 # scripts/
 
-Team-wide setup/build/lint helpers.
+- `env.sh` - `source scripts/env.sh` sets up ROS 2 Jazzy, `ROS_DOMAIN_ID`
+  (default 10), `ROBOT_NAMESPACE` (default `/robot_10`), Cyclone DDS like
+  on the robot, and this workspace if it is built. Use it on every machine
+  (VM, Raspberry Pi) instead of editing `~/.bashrc`.
+- `install-deps.sh` - installs what the packages in `src/` need, with
+  `rosdep`. Run it once after cloning and again when a package gets a new
+  dependency.
+- `build.sh` - `colcon build` of the workspace.
+- `lint.sh` - `ruff` and `black --check`. Run it before every push, there
+  is no CI.
 
-- `build.sh` — `colcon build` the workspace (requires ROS2 already sourced).
-- `lint.sh` — run `ruff` + `black --check` before every push. The repo is
-  private, so there's no CI to catch violations for you.
-- `env.sh` — `source scripts/env.sh` sets up ROS 2 Jazzy, `ROS_DOMAIN_ID`
-  (default 10), `ROBOT_NAMESPACE` (default `/robot_10`, used by launch files as the node namespace) and this workspace's overlay. Use it on every new machine
-  (VM, Raspberry Pi) instead of hand-editing `~/.bashrc`.
-- `install-deps.sh` — `rosdep` install of every package dependency in
-  `src/`; run once after cloning and again when a package adds a dependency.
+On a fresh machine:
 
-On a fresh machine: clone, `source scripts/env.sh`,
-`./scripts/install-deps.sh`, `./scripts/build.sh`, `source scripts/env.sh`.
+```bash
+source scripts/env.sh
+./scripts/install-deps.sh
+./scripts/build.sh
+source scripts/env.sh
+```
