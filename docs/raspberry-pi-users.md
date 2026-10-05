@@ -22,7 +22,7 @@ the same set the `ros2` account uses on the desktop; do **not** add `sudo`
 unless the person really needs to administer the Pi:
 
 ```bash
-sudo usermod -aG dialout,plugdev,video <username>
+sudo usermod -aG sudo,dialout,plugdev,video <username>
 ```
 
 Check the result:
@@ -33,17 +33,7 @@ id <username>
 
 The new groups apply from the next login.
 
-## 2. SSH access (admin, only if not set up yet)
-
-```bash
-sudo apt install -y openssh-server
-ssh-copy-id <username>@<pi-address>     # run on the teammate's own computer
-```
-
-Prefer key login over passwords. Each person uses their own account; nobody
-shares a login.
-
-## 3. First-time setup as the new user
+## 2. First-time setup as the new user
 
 Log in as the new user, then install the GitHub CLI once per machine
 (admin, since it is a system package):
@@ -64,7 +54,7 @@ The repository is private, so the GitHub account used here must be a
 collaborator on `yeoblyv/corrida`. Every person signs in with their own
 account; never share a token.
 
-## 4. Clone your own branch
+## 3. Clone your own branch
 
 Branch names are listed in [git-cheatsheet.md](git-cheatsheet.md) (`mark`,
 `Marjan`, `Daniel`, `yehor`):
@@ -89,7 +79,7 @@ To run the stack:
 ros2 launch corrida_bringup bringup.launch.py
 ```
 
-## 5. Working rules
+## 4. Working rules
 
 - Follow [CONTRIBUTING.md](../CONTRIBUTING.md): work on your own branch,
   Conventional Commits, `./scripts/lint.sh` before pushing.
@@ -97,7 +87,7 @@ ros2 launch corrida_bringup bringup.launch.py
   `feat(navigation): add wall-following state machine [Ubuntu 24.04, robot]`.
 - Push before you log out; an unpushed change lives only on the Pi.
 
-## 6. One robot, many users: safety
+## 5. One robot, many users: safety
 
 All accounts share one robot, one `ROS_DOMAIN_ID` and one namespace
 (`/robot_10`). Two people launching their stacks at the same time publish
@@ -111,11 +101,3 @@ LiDAR's serial port can also be opened by only one process at a time.
 - Run the physical-safety checks from the workshop material before any
   motion command.
 
-## 7. Removing an account (admin)
-
-```bash
-sudo deluser --remove-home <username>
-```
-
-This deletes the home directory, including unpushed work. Make sure it is
-pushed first.
