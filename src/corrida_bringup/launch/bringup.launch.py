@@ -1,37 +1,35 @@
-"""
-Top-level launch file for the Corrida robot stack.
+"""Start the robot stack (lidar and slam_toolbox) inside the robot namespace."""
 
-Every other package's launch file gets included from here, inside one group
-that pushes the robot namespace, so all nodes end up under a single prefix
-(default ``/robot_10``, taken from ``$ROBOT_NAMESPACE`` set by
-``scripts/env.sh``). One entry point means the same command starts the stack
-on the Raspberry Pi, in a VM or in simulation.
-"""
+import os
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
+from launch.actions import GroupAction, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import PushRosNamespace
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import PushRosNamespace, SetRemap
 
 
 def generate_launch_description() -> LaunchDescription:
-    """Declare the ``namespace`` argument and the namespaced group of actions."""
-    namespace = DeclareLaunchArgument(
-        "namespace",
-        default_value=EnvironmentVariable("ROBOT_NAMESPACE", default_value="/robot_10"),
-        description="Namespace prepended to every node and topic of the robot stack.",
-    )
+    # scripts/env.sh sets ROBOT_NAMESPACE
+    namespace = os.environ.get("ROBOT_NAMESPACE", "/robot_10")
+    launch_dir = os.path.join(get_package_share_directory("corrida_bringup"), "launch")
+
     lidar = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare("corrida_bringup"), "launch", "lidar.launch.py"])
-        )
+        PythonLaunchDescriptionSource(os.path.join(launch_dir, "lidar.launch.py"))
     )
     slam = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare("corrida_bringup"), "launch", "slam.launch.py"])
-        )
+        PythonLaunchDescriptionSource(os.path.join(launch_dir, "slam.launch.py"))
     )
-    stack = GroupAction([PushRosNamespace(LaunchConfiguration("namespace")), lidar, slam])
-    return LaunchDescription([namespace, stack])
+
+    stack = GroupAction(
+        [
+            PushRosNamespace(namespace),
+            # the Create 3 publishes its tf inside the namespace, so our nodes use that one:
+            # https://iroboteducation.github.io/create3_docs/setup/multi-robot/
+            SetRemap("/tf", "tf"),
+            SetRemap("/tf_static", "tf_static"),
+            lidar,
+            slam,
+        ]
+    )
+    return LaunchDescription([stack])
