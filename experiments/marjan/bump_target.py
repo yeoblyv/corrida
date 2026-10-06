@@ -1,8 +1,8 @@
 """Bump target for the iRobot Create 3, using only IR sensors and bumpers.
 
-The robot searches for an obstacle with its IR sensors, turns to face it,
-drives slowly towards it and touches it with the FRONT bumper.
-Then it backs off, turns around and searches for the next obstacle.
+The robot stands still and waits. When an obstacle appears (left, right or in front),
+it rotates on the spot until the obstacle is straight in front, drives slowly to it
+and touches it with the FRONT of the bumper. Then it backs off and waits again.
 A state machine decides what the robot is doing; the light ring shows the state.
 """
 import rclpy
@@ -24,59 +24,54 @@ IR_DIRECTIONS = {
     'front_right': -1.0,
     'right': -2.0,
 }
+CENTER_SENSORS = ('front_center_left', 'front_center_right')
 
 # IR thresholds (for IR: BIGGER = CLOSER). Calibrate these!
 DETECT = 60             # strongest IR value above this = "I see an obstacle"
 LOST = 30               # below this = "obstacle gone" (hysteresis)
-AIM_TOLERANCE = 0.4     # |direction| below this = obstacle is straight ahead
 
 # Motion settings
-SEARCH_SPEED = 0.10     # m/s wandering while searching
 APPROACH_SPEED = 0.08   # m/s driving towards the obstacle (slow = gentle hit)
-TURN_SPEED = 0.6        # rad/s when rotating on the spot
 K_AIM = 0.4             # rad/s turning per unit of direction error
 MIN_AIM_TURN = 0.2      # rad/s, so small errors still make the robot turn
-MAX_STEER = 0.5         # rad/s, limit for steering while approaching
+MAX_AIM_TURN = 0.6      # rad/s, fastest rotation while aiming
+MAX_STEER = 0.3         # rad/s, small corrections while approaching
 BACKUP_SPEED = 0.1      # m/s reversing after the hit
+SCAN_TURN = 0.3         # rad/s slow rotation while waiting (0 = stand still)
 
 # Timing
-LOST_TIMEOUT = 1.0      # s without seeing the obstacle while approaching -> search again
+LOST_TIMEOUT = 1.0      # s without seeing the obstacle while approaching -> wait again
 HIT_PAUSE = 1.0         # s standing still after the hit
 RETREAT_TIME = 0.6      # s reversing after the hit (the Create 3 limits long reversing)
-TURN_AROUND_TIME = 5.2  # s rotating at TURN_SPEED (0.6 rad/s * 5.2 s = about 180 degrees)
-HIT_ONLY_ONCE = False   # True: stop after the first hit
 
 # States
-SEARCH = 'SEARCH'
+WAIT = 'WAIT'
 AIM = 'AIM'
 APPROACH = 'APPROACH'
 HIT = 'HIT'
 RETREAT = 'RETREAT'
-TURN_AROUND = 'TURN_AROUND'
-DONE = 'DONE'
 
 STATE_COLORS = {                    # (red, green, blue) for the light ring
-    SEARCH: (255, 255, 255),        # white
+    WAIT: (255, 255, 255),          # white
     AIM: (255, 255, 0),             # yellow
     APPROACH: (255, 128, 0),        # orange
     HIT: (255, 0, 0),               # red
     RETREAT: (255, 0, 255),         # magenta
-    TURN_AROUND: (0, 0, 255),       # blue
-    DONE: (0, 255, 0),              # green
 }
 
 
 class BumpTarget(Node):
-    """Find an obstacle with the IR sensors and touch it with the front bumper."""
+    """Turn to face an obstacle and touch it with the front of the bumper."""
 
     def __init__(self):
         super().__init__('bump_target')
         sensor_qos = QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
         self.ir = {}
-        self.bumped = False
+        self.bump_part = None           # which part of the bumper was hit, e.g. 'bump_front_center'
         self.state = None
         self.state_start = self.get_clock().now()
         self.last_seen = None           # time when we last saw the obstacle
+        self.armed = True               # False after a hit, until the obstacle is removed
 
         self.create_subscription(IrIntensityVector, ROBOT + '/ir_intensity',
                                  self.ir_callback, sensor_qos)
@@ -85,7 +80,7 @@ class BumpTarget(Node):
         self.cmd_pub = self.create_publisher(Twist, ROBOT + '/cmd_vel', 10)
         self.light_pub = self.create_publisher(LightringLeds, ROBOT + '/cmd_lightring', 10)
 
-        self.change_state(SEARCH)
+        self.change_state(WAIT)
         self.create_timer(0.1, self.control_loop)
 
     # ---------- listening ----------
@@ -96,10 +91,10 @@ class BumpTarget(Node):
             self.ir[name] = r.value
 
     def hazard_callback(self, msg):
-        """Remember that the bumper was hit."""
+        """Remember that the bumper was hit, and which part of it."""
         for d in msg.detections:
             if d.type == HazardDetection.BUMP:
-                self.bumped = True
+                self.bump_part = d.header.frame_id
 
     # ---------- helpers ----------
     def change_state(self, new_state):
@@ -128,30 +123,34 @@ class BumpTarget(Node):
         msg.leds = [LedColor(red=red, green=green, blue=blue) for _ in range(6)]
         self.light_pub.publish(msg)
 
-    def obstacle_direction(self):
-        """Where is the obstacle? Returns (strength, direction).
+    def obstacle_info(self):
+        """Where is the obstacle? Returns (strength, direction, strongest_sensor).
 
-        strength : the highest IR value (how close the obstacle is)
-        direction: weighted average of the sensor directions (+ = left, - = right, 0 = ahead)
+        strength        : the highest IR value (how close the obstacle is)
+        direction       : weighted average of sensor directions (+ = left, - = right, 0 = ahead)
+        strongest_sensor: name of the sensor that sees it most
         """
         total = 0.0
         weighted = 0.0
         strength = 0
+        strongest = None
         for name, direction in IR_DIRECTIONS.items():
             value = self.ir.get(name, 0)
             total += value
             weighted += value * direction
-            strength = max(strength, value)
+            if value > strength:
+                strength = value
+                strongest = name
         if total == 0:
-            return 0, 0.0
-        return strength, weighted / total
+            return 0, 0.0, None
+        return strength, weighted / total, strongest
 
     def aim_turn(self, direction):
         """Turning speed that rotates the robot towards the obstacle."""
         turn = K_AIM * direction
         if abs(turn) < MIN_AIM_TURN:
             turn = MIN_AIM_TURN if direction >= 0 else -MIN_AIM_TURN
-        return max(-TURN_SPEED, min(TURN_SPEED, turn))
+        return max(-MAX_AIM_TURN, min(MAX_AIM_TURN, turn))
 
     # ---------- deciding ----------
     def control_loop(self):
@@ -159,63 +158,65 @@ class BumpTarget(Node):
         if not self.ir:
             return
 
-        strength, direction = self.obstacle_direction()
+        strength, direction, strongest = self.obstacle_info()
         if strength > LOST:
             self.last_seen = self.get_clock().now()
 
-        # The bumper touched something while searching/aiming/approaching = a hit!
-        if self.bumped and self.state in (SEARCH, AIM, APPROACH):
+        # The bumper touched something while aiming or approaching = a hit!
+        if self.bump_part is not None and self.state in (AIM, APPROACH):
+            front_hit = 'front' in self.bump_part
+            self.get_logger().info(
+                f'HIT with {self.bump_part} -> {"FRONT hit, success!" if front_hit else "not the front"}')
             self.change_state(HIT)
-        self.bumped = False
+        self.bump_part = None
 
         # Each state has its own small function; it returns the command for this tick
-        if self.state == SEARCH:
-            cmd = self.search(strength)
+        if self.state == WAIT:
+            cmd = self.wait(strength)
         elif self.state == AIM:
-            cmd = self.aim(strength, direction)
+            cmd = self.aim(strength, direction, strongest)
         elif self.state == APPROACH:
-            cmd = self.approach(direction)
+            cmd = self.approach(direction, strongest)
         elif self.state == HIT:
             cmd = self.hit()
-        elif self.state == RETREAT:
-            cmd = self.retreat()
-        elif self.state == TURN_AROUND:
-            cmd = self.turn_around()
         else:
-            cmd = Twist()                      # DONE: stand still
+            cmd = self.retreat()
 
         self.get_logger().info(
-            f'{self.state:12} strength={strength:4} direction={direction:+.2f} '
-            f'-> v={cmd.linear.x:.2f} w={cmd.angular.z:.2f}')
+            f'{self.state:9} strength={strength:4} direction={direction:+.2f} '
+            f'strongest={strongest} -> v={cmd.linear.x:.2f} w={cmd.angular.z:.2f}')
         self.cmd_pub.publish(cmd)
 
     # ---------- one function per state ----------
-    def search(self, strength):
-        """Drive slowly forward until an obstacle is seen."""
+    def wait(self, strength):
+        """Rotate slowly on the spot until an obstacle appears (after a hit: until it was removed)."""
         cmd = Twist()
-        if strength > DETECT:
+        if strength < LOST:
+            self.armed = True                  # nothing near: ready for a new obstacle
+        if self.armed and strength > DETECT:
             self.change_state(AIM)
         else:
-            cmd.linear.x = SEARCH_SPEED
+            cmd.angular.z = SCAN_TURN          # slowly look around
         return cmd
 
-    def aim(self, strength, direction):
-        """Rotate on the spot until the obstacle is straight ahead."""
+    def aim(self, strength, direction, strongest):
+        """Rotate on the spot until the obstacle is straight in front."""
         cmd = Twist()
-        if strength < LOST:                    # lost it
-            self.change_state(SEARCH)
-        elif abs(direction) < AIM_TOLERANCE:   # straight ahead now
+        if strength < LOST:                    # it went away
+            self.change_state(WAIT)
+        elif strongest in CENTER_SENSORS:      # the front-centre sensors see it most = facing it
             self.change_state(APPROACH)
         else:
             cmd.angular.z = self.aim_turn(direction)
         return cmd
 
-    def approach(self, direction):
-        """Drive slowly towards the obstacle, keeping it centred, until the bumper touches it."""
+    def approach(self, direction, strongest):
+        """Drive slowly straight at the obstacle until the bumper touches it."""
         cmd = Twist()
         if self.seconds_since_seen() > LOST_TIMEOUT:
-            self.change_state(SEARCH)
-        elif abs(direction) > 2 * AIM_TOLERANCE:   # drifted far off: aim again
+            self.change_state(WAIT)
+        elif strongest not in CENTER_SENSORS and strongest is not None and \
+                abs(IR_DIRECTIONS[strongest]) >= 2.0:   # it is far to the side now: aim again
             self.change_state(AIM)
         else:
             cmd.linear.x = APPROACH_SPEED
@@ -224,27 +225,18 @@ class BumpTarget(Node):
 
     def hit(self):
         """Stand still for a moment after touching the obstacle."""
-        cmd = Twist()
         if self.time_in_state() >= HIT_PAUSE:
             self.change_state(RETREAT)
-        return cmd
+        return Twist()
 
     def retreat(self):
-        """Reverse a few centimetres."""
+        """Reverse a few centimetres, then wait for the next obstacle."""
         cmd = Twist()
         if self.time_in_state() < RETREAT_TIME:
             cmd.linear.x = -BACKUP_SPEED
         else:
-            self.change_state(DONE if HIT_ONLY_ONCE else TURN_AROUND)
-        return cmd
-
-    def turn_around(self):
-        """Rotate about 180 degrees so we do not hit the same obstacle again."""
-        cmd = Twist()
-        if self.time_in_state() < TURN_AROUND_TIME:
-            cmd.angular.z = TURN_SPEED
-        else:
-            self.change_state(SEARCH)
+            self.armed = False                 # do not hit the same obstacle again
+            self.change_state(WAIT)
         return cmd
 
 
