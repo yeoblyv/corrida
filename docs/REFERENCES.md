@@ -66,14 +66,21 @@ page yourself before you add it.
 - Alvarez, C. (2026). *explore_lite* (Version 1.0.0) [Computer software].
   GitHub. Retrieved October 5, 2026, from
   https://github.com/robo-friends/m-explore-ros2
+- Clearpath Robotics. (2025). *turtlebot4* (Version 2.1.1) [Computer software].
+  GitHub. Retrieved October 9, 2026, from https://github.com/turtlebot/turtlebot4
 - Hanze University of Applied Sciences, Library. (n.d.). *APA guidelines
   (7th)*. Retrieved September 11, 2026, from
   https://libguides.hanze.nl/apa_guidelines_7
 - iRobot Corporation. (n.d.). *iRobot® Create® 3 Docs*. Retrieved
   September 11, 2026, from https://iroboteducation.github.io/create3_docs/
+- Macenski, S. (2026). *Nav2* (Version 1.3.13) [Computer software]. GitHub.
+  Retrieved October 9, 2026, from https://github.com/ros-navigation/navigation2
 - Macenski, S. (2026). *slam_toolbox* (Version 2.8.4) [Computer software].
   GitHub. Retrieved October 2, 2026, from
   https://github.com/SteveMacenski/slam_toolbox
+- Open Robotics. (n.d.). *Quality of Service settings*. ROS 2 Documentation:
+  Jazzy. Retrieved October 9, 2026, from
+  https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Quality-of-Service-Settings.html
 - Slamtec. (n.d.). *RPLIDAR A1 low cost 360 degree laser range scanner:
   Introduction and datasheet* (Model A1M8). Retrieved October 2, 2026, from
   https://www.slamtec.com/en/support

@@ -1,0 +1,179 @@
+# Nav2 config for the Create 3 with the lidar, started by launch/nav2.launch.py.
+# Based on the nav2.yaml of the TurtleBot 4 (same robot base and lidar) and on the
+# defaults of nav2_bringup 1.3.13:
+# https://github.com/turtlebot/turtlebot4/blob/jazzy/turtlebot4_navigation/config/nav2.yaml
+# https://github.com/ros-navigation/navigation2/blob/1.3.13/nav2_bringup/params/nav2_params.yaml
+# (full citations: docs/REFERENCES.md). Values we changed have a comment.
+# The keys start with /** so they also match the nodes inside the robot namespace.
+
+/**/bt_navigator:
+  ros__parameters:
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: odom_reliable  # from our odom_relay, Nav2 can't read the robot's odom directly
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    wait_for_service_timeout: 1000
+    action_server_result_timeout: 900.0
+    navigators: ["navigate_to_pose"]  # upstream also has navigate_through_poses
+    navigate_to_pose:
+      plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
+    error_code_names:
+      - compute_path_error_code
+      - follow_path_error_code
+
+/**/controller_server:
+  ros__parameters:
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.3
+    odom_topic: odom_reliable  # see bt_navigator
+    progress_checker_plugins: ["progress_checker"]
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+    general_goal_checker:
+      stateful: true
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 3.15  # upstream 0.25, the heading at a frontier doesn't matter
+    FollowPath:
+      # the TurtleBot 4 uses MPPI, pure pursuit needs much less CPU on the Pi 4
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.15  # m/s, slow on purpose, the robot can do 0.306
+      lookahead_dist: 0.4  # m, upstream 0.6, our corridors are narrow
+      rotate_to_heading_angular_vel: 0.6  # rad/s, upstream 1.8, slam_toolbox likes slow turns
+      use_rotate_to_heading: true
+      allow_reversing: false  # the Create 3 only drives backwards a few centimetres
+      use_collision_detection: true
+
+/**/local_costmap/local_costmap:
+  ros__parameters:
+    update_frequency: 5.0
+    publish_frequency: 2.0
+    global_frame: odom
+    robot_base_frame: base_link
+    rolling_window: true
+    width: 3
+    height: 3
+    resolution: 0.05
+    robot_radius: 0.18  # m, the robot's own tf puts the bumper 0.175 m from its centre
+    plugins: ["obstacle_layer", "inflation_layer"]
+    obstacle_layer:
+      plugin: "nav2_costmap_2d::ObstacleLayer"
+      enabled: true
+      # upstream 0.0, our lidar tf sits at floor height so the scan points come out around z = 0
+      # and a bit below it when the robot tilts
+      min_obstacle_height: -0.5
+      observation_sources: scan
+      scan:
+        topic: scan
+        data_type: "LaserScan"
+        marking: true
+        clearing: true
+        min_obstacle_height: -0.5
+        max_obstacle_height: 2.0
+        raytrace_max_range: 3.0
+        obstacle_max_range: 2.5
+    inflation_layer:
+      plugin: "nav2_costmap_2d::InflationLayer"
+      cost_scaling_factor: 3.0
+      inflation_radius: 0.4  # m, upstream 0.7 is wider than our corridors
+    always_send_full_costmap: true
+
+/**/global_costmap/global_costmap:
+  ros__parameters:
+    update_frequency: 1.0
+    publish_frequency: 1.0
+    global_frame: map
+    robot_base_frame: base_link
+    resolution: 0.05
+    robot_radius: 0.18
+    track_unknown_space: true
+    map_topic: /map  # with the slash, slam_toolbox publishes the map outside the robot namespace
+    plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+    static_layer:
+      plugin: "nav2_costmap_2d::StaticLayer"
+      map_subscribe_transient_local: true
+    obstacle_layer:
+      plugin: "nav2_costmap_2d::ObstacleLayer"
+      enabled: true
+      min_obstacle_height: -0.5  # same as the local costmap
+      observation_sources: scan
+      scan:
+        topic: scan
+        data_type: "LaserScan"
+        marking: true
+        clearing: true
+        min_obstacle_height: -0.5
+        max_obstacle_height: 2.0
+        raytrace_max_range: 3.0
+        obstacle_max_range: 2.5
+    inflation_layer:
+      plugin: "nav2_costmap_2d::InflationLayer"
+      cost_scaling_factor: 3.0
+      inflation_radius: 0.4
+    always_send_full_costmap: true
+
+/**/planner_server:
+  ros__parameters:
+    expected_planner_frequency: 1.0  # upstream 20, the behavior tree replans once a second
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner::NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+/**/behavior_server:
+  ros__parameters:
+    cycle_frequency: 10.0
+    # upstream also has backup, drive_on_heading and assisted_teleop,
+    # our behavior tree (config/navigate_to_pose.xml) only uses these two
+    behavior_plugins: ["spin", "wait"]
+    spin:
+      plugin: "nav2_behaviors::Spin"
+    wait:
+      plugin: "nav2_behaviors::Wait"
+    global_frame: map
+    local_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.1
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 0.6  # rad/s, upstream 1.0, slow turns for slam_toolbox
+    min_rotational_vel: 0.3
+    rotational_acc_lim: 3.2
+
+/**/collision_monitor:
+  ros__parameters:
+    base_frame_id: "base_link"  # upstream base_footprint, our robot's tf is on base_link
+    odom_frame_id: "odom"
+    cmd_vel_in_topic: "cmd_vel_nav"  # upstream cmd_vel_smoothed, we have no velocity smoother
+    cmd_vel_out_topic: "cmd_vel"
+    state_topic: "collision_monitor_state"
+    transform_tolerance: 0.2
+    source_timeout: 1.0
+    base_shift_correction: True
+    stop_pub_timeout: 2.0
+    # the robot's footprint is moved ahead along the commanded speed, and the robot
+    # slows down or stops before the footprint would reach a scan point
+    polygons: ["FootprintApproach"]
+    FootprintApproach:
+      type: "polygon"
+      action_type: "approach"
+      footprint_topic: "local_costmap/published_footprint"  # upstream /local_costmap/..., no slash
+      time_before_collision: 1.2
+      simulation_time_step: 0.1
+      min_points: 6
+      visualize: False
+      enabled: True
+    observation_sources: ["scan"]
+    scan:
+      type: "scan"
+      topic: "scan"
+      enabled: True
