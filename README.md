@@ -52,8 +52,10 @@ ros2 launch corrida_exploration explore.launch.py drive:=true
 The explorer looks for the borders between the mapped and the unknown part
 of the map (frontiers), sends the nearest one to Nav2 as a goal and repeats
 until none is left. Without `drive:=true` it only shows the goals, which is
-a safe way to watch it while driving with teleop. In Foxglove add `/map`,
-`/robot_10/frontiers`, `/robot_10/exploration_goal` and `/robot_10/plan`.
+a safe way to watch it while driving with teleop. Run only one explorer at
+a time, stop the one without `drive:=true` before you start the driving
+one. In Foxglove add `/map`, `/robot_10/frontiers`,
+`/robot_10/exploration_goal` and `/robot_10/plan`.
 
 Before `drive:=true`: robot off the dock, nobody and no cables in the maze.
 Ctrl+C in the explorer's terminal stops it (it cancels the Nav2 goal
@@ -73,6 +75,8 @@ Known issues:
   Nav2 costmaps accept scan points from -0.5 m up because of that.
 - slam_toolbox gets slower the longer it runs, restart the bringup before
   a run.
+- With everything running the Pi got to 83 C and slowed itself down, then
+  Nav2 starts timing out. It needs a heatsink or a fan.
 
 ## Hardware & environment
 

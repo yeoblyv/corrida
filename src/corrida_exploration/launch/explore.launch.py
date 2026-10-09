@@ -5,7 +5,7 @@ import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node, PushRosNamespace, SetRemap
+from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.parameter_descriptions import ParameterValue
 
 
@@ -21,13 +21,5 @@ def generate_launch_description() -> LaunchDescription:
         output="screen",
     )
 
-    group = GroupAction(
-        [
-            PushRosNamespace(namespace),
-            # same remaps as in bringup.launch.py, the explorer reads the robot's tf too
-            SetRemap("/tf", "tf"),
-            SetRemap("/tf_static", "tf_static"),
-            explorer,
-        ]
-    )
+    group = GroupAction([PushRosNamespace(namespace), explorer])
     return LaunchDescription([drive, group])

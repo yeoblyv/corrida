@@ -78,9 +78,12 @@ page yourself before you add it.
 - Macenski, S. (2026). *slam_toolbox* (Version 2.8.4) [Computer software].
   GitHub. Retrieved October 2, 2026, from
   https://github.com/SteveMacenski/slam_toolbox
-- Open Robotics. (n.d.). *Quality of Service settings*. ROS 2 Documentation:
+- Open Robotics. (n.d.-a). *Quality of Service settings*. ROS 2 Documentation:
   Jazzy. Retrieved October 9, 2026, from
   https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Quality-of-Service-Settings.html
+- Open Robotics. (n.d.-b). *Writing an action server and client (Python)*.
+  ROS 2 Documentation: Jazzy. Retrieved October 9, 2026, from
+  https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html
 - Slamtec. (n.d.). *RPLIDAR A1 low cost 360 degree laser range scanner:
   Introduction and datasheet* (Model A1M8). Retrieved October 2, 2026, from
   https://www.slamtec.com/en/support
