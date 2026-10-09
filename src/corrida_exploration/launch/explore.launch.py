@@ -1,16 +1,25 @@
-"""Start the explorer node inside the robot namespace. The bringup must already be running."""
+"""Start the explorer inside the robot namespace. The bringup and nav2.launch.py must be running."""
 
 import os
 
 from launch import LaunchDescription
-from launch.actions import GroupAction
+from launch.actions import DeclareLaunchArgument, GroupAction
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace, SetRemap
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description() -> LaunchDescription:
     # scripts/env.sh sets ROBOT_NAMESPACE
     namespace = os.environ.get("ROBOT_NAMESPACE", "/robot_10")
-    explorer = Node(package="corrida_exploration", executable="explorer", output="screen")
+    # drive:=true makes the robot move, without it the goals are only shown in Foxglove
+    drive = DeclareLaunchArgument("drive", default_value="false")
+    explorer = Node(
+        package="corrida_exploration",
+        executable="explorer",
+        parameters=[{"drive": ParameterValue(LaunchConfiguration("drive"), value_type=bool)}],
+        output="screen",
+    )
 
     group = GroupAction(
         [
@@ -21,4 +30,4 @@ def generate_launch_description() -> LaunchDescription:
             explorer,
         ]
     )
-    return LaunchDescription([group])
+    return LaunchDescription([drive, group])

@@ -39,6 +39,41 @@ and slam_toolbox:
 ros2 launch corrida_bringup bringup.launch.py
 ```
 
+## Exploring on its own
+
+Three terminals on the Pi, `source scripts/env.sh` in each:
+
+```bash
+ros2 launch corrida_bringup bringup.launch.py
+ros2 launch corrida_bringup nav2.launch.py
+ros2 launch corrida_exploration explore.launch.py drive:=true
+```
+
+The explorer looks for the borders between the mapped and the unknown part
+of the map (frontiers), sends the nearest one to Nav2 as a goal and repeats
+until none is left. Without `drive:=true` it only shows the goals, which is
+a safe way to watch it while driving with teleop. In Foxglove add `/map`,
+`/robot_10/frontiers`, `/robot_10/exploration_goal` and `/robot_10/plan`.
+
+Before `drive:=true`: robot off the dock, nobody and no cables in the maze.
+Ctrl+C in the explorer's terminal stops it (it cancels the Nav2 goal
+first). If the robot still moves, cut the wheel power:
+
+```bash
+ros2 service call /robot_10/e_stop irobot_create_msgs/srv/EStop "{e_stop_on: true}"
+```
+
+`e_stop_on: false` switches the wheels on again.
+
+Known issues:
+
+- The Create 3 refuses to drive backwards more than a few centimetres, so
+  when Nav2 is stuck it only turns and waits.
+- The lidar height isn't measured yet, the tf has it at floor height. The
+  Nav2 costmaps accept scan points from -0.5 m up because of that.
+- slam_toolbox gets slower the longer it runs, restart the bringup before
+  a run.
+
 ## Hardware & environment
 
 * **Robot:** iRobot Create 3 - 7x IR obstacle sensors, 4x cliff sensors,

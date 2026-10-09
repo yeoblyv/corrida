@@ -119,9 +119,24 @@ def middle_cell(cells: list[Cell]) -> Cell:
     return min(cells, key=lambda cell: math.dist(cell, centre))
 
 
-def nearest_goal(frontiers: list[list[Cell]], steps: dict[Cell, int]) -> Cell | None:
-    """Return the middle cell of the frontier that is the fewest steps away, or None."""
-    goals = [middle_cell(cells) for cells in frontiers]
+def is_blocked(cell: Cell, blocked: list[Cell], radius: int) -> bool:
+    for other in blocked:
+        if math.dist(cell, other) <= radius:
+            return True
+    return False
+
+
+def nearest_goal(
+    frontiers: list[list[Cell]], steps: dict[Cell, int], blocked: list[Cell], radius: int
+) -> Cell | None:
+    """Return the middle cell of the nearest frontier that isn't blocked, or None."""
+    # the paper keeps the frontiers that were visited or could not be reached in a
+    # list and skips them, that list is "blocked" here
+    goals = []
+    for cells in frontiers:
+        goal = middle_cell(cells)
+        if not is_blocked(goal, blocked, radius):
+            goals.append(goal)
     if not goals:
         return None
     return min(goals, key=lambda goal: steps[goal])

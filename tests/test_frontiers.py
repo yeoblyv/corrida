@@ -109,7 +109,7 @@ def test_frontier_at_the_open_end_of_a_corridor():
     steps = frontiers.reachable_cells(grid, (1, 2))
     found = frontiers.find_frontiers(grid, steps, 3)
     assert found == [[(7, 1), (7, 2), (7, 3)]]
-    assert frontiers.nearest_goal(found, steps) == (7, 2)
+    assert frontiers.nearest_goal(found, steps, [], 0) == (7, 2)
     assert steps[(7, 2)] == 6
 
 
@@ -117,7 +117,7 @@ def test_short_frontiers_are_dropped():
     grid = grid_from(CORRIDOR)
     steps = frontiers.reachable_cells(grid, (1, 2))
     assert frontiers.find_frontiers(grid, steps, 4) == []
-    assert frontiers.nearest_goal([], steps) is None
+    assert frontiers.nearest_goal([], steps, [], 0) is None
 
 
 def test_one_unknown_cell_between_laser_beams_is_no_frontier():
@@ -155,7 +155,18 @@ def test_nearest_goal_is_the_closest_of_two_frontiers():
     steps = frontiers.reachable_cells(grid, (1, 3))
     found = frontiers.find_frontiers(grid, steps, 3)
     assert len(found) == 2
-    assert frontiers.nearest_goal(found, steps) == (3, 1)
+    assert frontiers.nearest_goal(found, steps, [], 0) == (3, 1)
+
+
+def test_blocked_frontiers_are_skipped():
+    grid = grid_from(TWO_OPENINGS)
+    steps = frontiers.reachable_cells(grid, (1, 3))
+    found = frontiers.find_frontiers(grid, steps, 3)
+    # a goal that was reached or given up is blocked, a cell next to it blocks as well
+    assert frontiers.nearest_goal(found, steps, [(3, 1)], 0) == (7, 3)
+    assert frontiers.nearest_goal(found, steps, [(2, 1)], 1) == (7, 3)
+    assert frontiers.nearest_goal(found, steps, [(2, 1)], 0) == (3, 1)
+    assert frontiers.nearest_goal(found, steps, [(3, 1), (7, 3)], 0) is None
 
 
 def test_distance_is_counted_along_the_way_around_walls():
@@ -164,4 +175,4 @@ def test_distance_is_counted_along_the_way_around_walls():
     found = frontiers.find_frontiers(grid, steps, 1)
     # the frontier at (1, 1) is 2 cells away in a straight line but 18 steps to drive
     assert steps[(1, 1)] == 18
-    assert frontiers.nearest_goal(found, steps) == (5, 4)
+    assert frontiers.nearest_goal(found, steps, [], 0) == (5, 4)
