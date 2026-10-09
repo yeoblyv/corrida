@@ -11,7 +11,7 @@
     global_frame: map
     robot_base_frame: base_link
     odom_topic: odom_reliable  # from our odom_relay, Nav2 can't read the robot's odom directly
-    bt_loop_duration: 10
+    bt_loop_duration: 50  # ms, upstream 10, lighter on the Pi
     default_server_timeout: 20
     wait_for_service_timeout: 1000
     action_server_result_timeout: 900.0
