@@ -58,6 +58,13 @@ ros2 launch corrida_bringup bringup.launch.py
 
 ## Exploring on its own
 
+Nav2 drives with the MPPI controller, which isn't in the Nav2 packages from
+the start. Install it once (or run `./scripts/install-deps.sh`):
+
+```bash
+sudo apt install ros-jazzy-nav2-mppi-controller
+```
+
 Three terminals on the Pi, `source scripts/env.sh` in each:
 
 ```bash
@@ -123,11 +130,13 @@ ros2 service call /robot_10/e_stop irobot_create_msgs/srv/EStop "{e_stop_on: tru
 
 - The Create 3 refuses to drive backwards more than a few centimetres, so
   when Nav2 is stuck it only turns and waits.
-- Very close to a wall Nav2 won't drive ("collision ahead" in its log). On
-  the first run the robot got stuck 0.24 m from a wall, and a run that
-  started right at the end of a wall lost its first goal before Nav2 got
-  the robot free. Goals are kept 0.25 m from walls now, and the 90 s limit
-  gives up a goal that doesn't work out.
+- With the pure pursuit controller the robot got stuck next to walls and
+  in doorways and turned on the spot ("collision ahead" in the Nav2 log).
+  Its check counted the robot as touching a wall with 3-7 cm still left,
+  and from there no recovery moved it. Nav2 now uses MPPI, smaller cells
+  in the local costmap and a wider inflation (comments in
+  `config/nav2.yaml`). That was tested in a simulation of our maze, not on
+  the robot yet.
 - Turning to the walls needs straight walls within 4 m. Without them the
   robot doesn't turn and the map stays as it is.
 - The finish is turned into map coordinates from the odometry of the undock

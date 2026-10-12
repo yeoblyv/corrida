@@ -84,6 +84,9 @@ page yourself before you add it.
 - Open Robotics. (n.d.-b). *Writing an action server and client (Python)*.
   ROS 2 Documentation: Jazzy. Retrieved October 9, 2026, from
   https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html
+- Open Navigation LLC. (n.d.). *Tuning guide*. Nav2 Documentation.
+  Retrieved October 12, 2026, from
+  https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/tuning_guide.md
 - Slamtec. (n.d.). *RPLIDAR A1 low cost 360 degree laser range scanner:
   Introduction and datasheet* (Model A1M8). Retrieved October 2, 2026, from
   https://www.slamtec.com/en/support
