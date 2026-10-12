@@ -21,6 +21,7 @@
 <p align="center">
   <a href="#about"><b>About</b></a> &nbsp;·&nbsp;
   <a href="#quickstart"><b>Quickstart</b></a> &nbsp;·&nbsp;
+  <a href="#exploring-on-its-own"><b>Exploring</b></a> &nbsp;·&nbsp;
   <a href="#hardware--environment"><b>Hardware</b></a> &nbsp;·&nbsp;
   <a href="#team---group-6"><b>Team</b></a> &nbsp;·&nbsp;
   <a href="#deadlines"><b>Deadlines</b></a> &nbsp;·&nbsp;
@@ -65,17 +66,50 @@ ros2 launch corrida_bringup nav2.launch.py
 ros2 launch corrida_exploration explore.launch.py drive:=true
 ```
 
-The explorer looks for the borders between the mapped and the unknown part
-of the map (frontiers), sends the nearest one to Nav2 as a goal and repeats
-until none is left. Without `drive:=true` it only shows the goals, which is
-a safe way to watch it while driving with teleop. Run only one explorer at
-a time, stop the one without `drive:=true` before you start the driving
-one. In Foxglove add `/map`, `/robot_10/frontiers`,
-`/robot_10/exploration_goal` and `/robot_10/plan`.
+With `drive:=true` the robot:
 
-Before `drive:=true`: robot off the dock, nobody and no cables in the maze.
-Ctrl+C in the explorer's terminal stops it (it cancels the Nav2 goal
-first). If the robot still moves, cut the wheel power:
+1. leaves the dock, if it is on it,
+2. turns until it is parallel to the walls it sees with the lidar, then
+   starts its odometry and the slam map again from there, so the walls in
+   the map run along the x and y axes (`align:=false` skips this),
+3. looks for the borders between the mapped and the unknown part of the
+   map (frontiers) and sends the nearest one to Nav2 as a goal, until none
+   is left.
+
+Without `drive:=true` nothing moves and the goals are only shown, which is a
+safe way to watch it while driving with teleop. Run only one explorer at a
+time. In Foxglove add `/map`, `/robot_10/frontiers`,
+`/robot_10/exploration_goal`, `/robot_10/finish` and `/robot_10/plan`.
+
+### With a finish
+
+```bash
+ros2 launch corrida_exploration explore.launch.py drive:=true finish_distance:=3.0 finish_angle:=30
+```
+
+The finish is a distance (m) and an angle (deg) from the pose the robot has
+when the explorer starts: 0 is where the robot faces then, a positive angle
+is to the left. On the dock the robot faces the dock, so straight out into
+the maze is 180. The robot explores on the way: it picks the frontier with
+the shortest drive plus the straight distance from there to the finish, and
+drives to the finish itself as soon as the map shows a free way to it. It
+stops once it is within 0.3 m of the finish.
+
+### Safety
+
+Before `drive:=true`: nobody and no cables in the maze, and someone watching.
+The robot drives at 0.15 m/s at most, and Nav2's collision monitor slows it
+down and stops it when the lidar shows an obstacle less than 1.2 s ahead. The
+explorer stops by itself:
+
+- after `max_minutes` (default 10),
+- below 20 % battery, on the dock it doesn't leave the dock then,
+- after 3 bumps,
+- when no frontier is left.
+
+A goal that isn't reached in 90 s is given up. Ctrl+C in the explorer's
+terminal stops it, it cancels the turn or the Nav2 goal first. If the robot
+still moves, cut the wheel power:
 
 ```bash
 ros2 service call /robot_10/e_stop irobot_create_msgs/srv/EStop "{e_stop_on: true}"
@@ -83,10 +117,18 @@ ros2 service call /robot_10/e_stop irobot_create_msgs/srv/EStop "{e_stop_on: tru
 
 `e_stop_on: false` switches the wheels on again.
 
-Known issues:
+### Known issues
 
 - The Create 3 refuses to drive backwards more than a few centimetres, so
   when Nav2 is stuck it only turns and waits.
+- On the first run the robot got stuck 0.24 m from a wall, Nav2 wouldn't
+  drive or turn there. Goals are kept 0.25 m from walls now, the 90 s limit
+  gives up a goal if it happens again.
+- Turning to the walls needs straight walls within 4 m. Without them the
+  robot doesn't turn and the map stays as it is.
+- The finish is turned into map coordinates from the odometry of the undock
+  and the turns. An error of 1 degree there puts a finish 5 m away about
+  9 cm off.
 - The lidar height isn't measured yet, the tf has it at floor height. The
   Nav2 costmaps accept scan points from -0.5 m up because of that.
 - slam_toolbox gets slower the longer it runs, restart the bringup before

@@ -41,6 +41,15 @@ MAP_ENDS_IN_FREE_SPACE = """
     ####
 """
 
+NEXT_TO_A_WALL = """
+    .......
+    .......
+    .......
+    .......
+    .......
+    #######
+"""
+
 FREE_SPACE_AT_THE_FIRST_CELLS = """
     ...#
     ...#
@@ -64,6 +73,11 @@ LONG_WAY_AROUND = """
     #.........#
     #?????????#
 """
+
+
+def goals_of(found, grid, limit=5):
+    clear = frontiers.clearance(grid, limit)
+    return [frontiers.goal_cell(cells, clear, limit) for cells in found]
 
 
 def grid_from(drawing: str) -> list[list[int]]:
@@ -109,7 +123,7 @@ def test_frontier_at_the_open_end_of_a_corridor():
     steps = frontiers.reachable_cells(grid, (1, 2))
     found = frontiers.find_frontiers(grid, steps, 3)
     assert found == [[(7, 1), (7, 2), (7, 3)]]
-    assert frontiers.nearest_goal(found, steps, [], 0) == (7, 2)
+    assert frontiers.best_goal(goals_of(found, grid), steps) == (7, 2)
     assert steps[(7, 2)] == 6
 
 
@@ -117,7 +131,7 @@ def test_short_frontiers_are_dropped():
     grid = grid_from(CORRIDOR)
     steps = frontiers.reachable_cells(grid, (1, 2))
     assert frontiers.find_frontiers(grid, steps, 4) == []
-    assert frontiers.nearest_goal([], steps, [], 0) is None
+    assert frontiers.best_goal([], steps) is None
 
 
 def test_one_unknown_cell_between_laser_beams_is_no_frontier():
@@ -144,10 +158,31 @@ def test_the_edge_of_the_map_counts_as_unknown():
     assert frontiers.find_frontiers(grid, steps, 1) == [[(0, 0), (0, 1), (1, 0), (2, 0)]]
 
 
-def test_middle_cell_is_a_cell_of_the_frontier():
+def test_goal_cell_is_a_cell_of_the_frontier():
     u_shape = [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (2, 0)]
-    # the centre of this shape is (1.0, 1.1), which is not one of its cells
-    assert frontiers.middle_cell(u_shape) == (1, 2)
+    # no walls around, so the most central cell. The centre of this shape is (1.0, 1.1),
+    # which is not one of its cells
+    assert frontiers.goal_cell(u_shape, {}, 5) == (1, 2)
+
+
+def test_clearance_counts_cells_to_the_nearest_wall():
+    grid = grid_from(NEXT_TO_A_WALL)
+    clear = frontiers.clearance(grid, 3)
+    # the wall is the last line of the drawing, so row 5
+    assert clear[(0, 5)] == 0
+    assert clear[(0, 4)] == 1
+    assert clear[(3, 3)] == 2
+    assert clear[(6, 2)] == 3
+    # further than the limit: not in the result at all
+    assert (6, 1) not in clear
+
+
+def test_goal_cell_keeps_away_from_walls():
+    grid = grid_from(NEXT_TO_A_WALL)
+    clear = frontiers.clearance(grid, 5)
+    frontier = [(1, 4), (2, 4), (3, 4), (3, 3), (3, 2), (3, 1)]
+    # the frontier touches the wall at the bottom (row 5), the goal is its cell furthest from it
+    assert frontiers.goal_cell(frontier, clear, 5) == (3, 1)
 
 
 def test_nearest_goal_is_the_closest_of_two_frontiers():
@@ -155,18 +190,27 @@ def test_nearest_goal_is_the_closest_of_two_frontiers():
     steps = frontiers.reachable_cells(grid, (1, 3))
     found = frontiers.find_frontiers(grid, steps, 3)
     assert len(found) == 2
-    assert frontiers.nearest_goal(found, steps, [], 0) == (3, 1)
+    assert frontiers.best_goal(goals_of(found, grid), steps) == (3, 1)
 
 
-def test_blocked_frontiers_are_skipped():
+def test_blocked_goals():
+    # a goal that was reached or given up is blocked, a cell next to it blocks as well
+    assert frontiers.is_blocked((3, 1), [(3, 1)], 0)
+    assert frontiers.is_blocked((3, 1), [(2, 1)], 1)
+    assert not frontiers.is_blocked((3, 1), [(2, 1)], 0)
+    assert not frontiers.is_blocked((3, 1), [], 5)
+
+
+def test_finish_pulls_the_goal_towards_it():
     grid = grid_from(TWO_OPENINGS)
     steps = frontiers.reachable_cells(grid, (1, 3))
-    found = frontiers.find_frontiers(grid, steps, 3)
-    # a goal that was reached or given up is blocked, a cell next to it blocks as well
-    assert frontiers.nearest_goal(found, steps, [(3, 1)], 0) == (7, 3)
-    assert frontiers.nearest_goal(found, steps, [(2, 1)], 1) == (7, 3)
-    assert frontiers.nearest_goal(found, steps, [(2, 1)], 0) == (3, 1)
-    assert frontiers.nearest_goal(found, steps, [(3, 1), (7, 3)], 0) is None
+    goals = goals_of(frontiers.find_frontiers(grid, steps, 3), grid)
+    # without a finish the opening at the top is nearer
+    assert frontiers.best_goal(goals, steps) == (3, 1)
+    # with a finish far to the right the opening on the right side wins
+    assert frontiers.best_goal(goals, steps, finish=(30, 3)) == (7, 3)
+    # and with a finish far above the top one stays
+    assert frontiers.best_goal(goals, steps, finish=(3, -20)) == (3, 1)
 
 
 def test_distance_is_counted_along_the_way_around_walls():
@@ -175,4 +219,16 @@ def test_distance_is_counted_along_the_way_around_walls():
     found = frontiers.find_frontiers(grid, steps, 1)
     # the frontier at (1, 1) is 2 cells away in a straight line but 18 steps to drive
     assert steps[(1, 1)] == 18
-    assert frontiers.nearest_goal(found, steps, [], 0) == (5, 4)
+    assert frontiers.best_goal(goals_of(found, grid, limit=1), steps) == (5, 4)
+
+
+def test_usable_cells_leaves_out_cells_at_walls_and_near_tried_goals():
+    grid = grid_from(NEXT_TO_A_WALL)
+    clear = frontiers.clearance(grid, 5)
+    row = [(column, 2) for column in range(7)]
+    # row 2 is 3 cells from the wall, so all of it is far enough with a minimum of 3
+    assert frontiers.usable_cells(row, clear, 5, 3, [], 0) == row
+    # with a minimum of 4 none of it is
+    assert frontiers.usable_cells(row, clear, 5, 4, [], 0) == []
+    # a goal tried at (1, 2) takes out the cells within 1 cell of it, not the whole row
+    assert frontiers.usable_cells(row, clear, 5, 3, [(1, 2)], 1) == [(3, 2), (4, 2), (5, 2), (6, 2)]

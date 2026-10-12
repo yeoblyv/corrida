@@ -12,6 +12,7 @@ from collections import deque
 # values of a map cell, slam_toolbox only writes -1, 0 and 100 (a wall)
 FREE = 0
 UNKNOWN = -1
+OCCUPIED = 100
 
 Cell = tuple[int, int]  # (column, row) of a map cell
 Grid = list[list[int]]  # grid[row][column]
@@ -109,14 +110,37 @@ def find_frontiers(grid: Grid, steps: dict[Cell, int], min_cells: int) -> list[l
     return sorted(frontiers)
 
 
-def middle_cell(cells: list[Cell]) -> Cell:
-    """Return the cell of a frontier that is closest to its centre."""
+def clearance(grid: Grid, limit: int) -> dict[Cell, int]:
+    """Return how many cells away the nearest wall is, for cells up to `limit` cells from one."""
+    # one search that starts from all wall cells at once and grows outwards. With 8
+    # neighbours a diagonal step counts as one cell, a bit less than the real distance
+    distance = {}
+    queue = deque()
+    for row, values in enumerate(grid):
+        for column, value in enumerate(values):
+            if value == OCCUPIED:
+                distance[(column, row)] = 0
+                queue.append((column, row))
+    while queue:
+        cell = queue.popleft()
+        if distance[cell] == limit:
+            continue
+        for other in neighbours(cell, grid, SIDES + CORNERS):
+            if other not in distance:
+                distance[other] = distance[cell] + 1
+                queue.append(other)
+    return distance
+
+
+def goal_cell(cells: list[Cell], clear: dict[Cell, int], limit: int) -> Cell:
+    """Return the frontier cell furthest from the walls (up to limit), the most central on a tie."""
     centre = (
         sum(cell[0] for cell in cells) / len(cells),
         sum(cell[1] for cell in cells) / len(cells),
     )
-    # not the centre itself: when the frontier is bent, that point can be inside a wall
-    return min(cells, key=lambda cell: math.dist(cell, centre))
+    # a cell of the frontier and not its centre, a bent frontier has its centre in a wall.
+    # Cells missing from `clear` are more than `limit` cells from any wall
+    return max(cells, key=lambda cell: (clear.get(cell, limit), -math.dist(cell, centre)))
 
 
 def is_blocked(cell: Cell, blocked: list[Cell], radius: int) -> bool:
@@ -126,17 +150,28 @@ def is_blocked(cell: Cell, blocked: list[Cell], radius: int) -> bool:
     return False
 
 
-def nearest_goal(
-    frontiers: list[list[Cell]], steps: dict[Cell, int], blocked: list[Cell], radius: int
-) -> Cell | None:
-    """Return the middle cell of the nearest frontier that isn't blocked, or None."""
-    # the paper keeps the frontiers that were visited or could not be reached in a
-    # list and skips them, that list is "blocked" here
-    goals = []
-    for cells in frontiers:
-        goal = middle_cell(cells)
-        if not is_blocked(goal, blocked, radius):
-            goals.append(goal)
+def usable_cells(
+    cells: list[Cell],
+    clear: dict[Cell, int],
+    limit: int,
+    min_clear: int,
+    blocked: list[Cell],
+    radius: int,
+) -> list[Cell]:
+    """Return the cells that are far enough from walls and from goals tried before."""
+    usable = []
+    for cell in cells:
+        if clear.get(cell, limit) >= min_clear and not is_blocked(cell, blocked, radius):
+            usable.append(cell)
+    return usable
+
+
+def best_goal(goals: list[Cell], steps: dict[Cell, int], finish: Cell | None = None) -> Cell | None:
+    """Return the goal that is the fewest steps away, or None if there are no goals."""
     if not goals:
         return None
-    return min(goals, key=lambda goal: steps[goal])
+    if finish is None:
+        return min(goals, key=lambda goal: steps[goal])
+    # plus the straight distance from the goal to the finish, so the robot explores in the
+    # direction of the finish instead of the nearest corner (like the cost of a node in A*)
+    return min(goals, key=lambda goal: steps[goal] + math.dist(goal, finish))
