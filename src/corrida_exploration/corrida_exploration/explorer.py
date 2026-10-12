@@ -113,10 +113,9 @@ class Explorer(Node):
         self.create_subscription(OccupancyGrid, "/map", self.on_map, latched)
         # slam_toolbox publishes the robot's pose on the map, so this node doesn't need tf
         self.create_subscription(PoseWithCovarianceStamped, "pose", self.on_pose, 10)
-        # the Create 3 publishes its sensors as best effort, so subscribe the same way
+        # the Create 3 publishes its sensors as best effort, so subscribe the same way,
+        # scans and odometry are only needed in get_ready() and start there
         sensors = qos_profile_sensor_data
-        self.create_subscription(LaserScan, "scan", self.on_scan, sensors)
-        self.create_subscription(Odometry, "odom", self.on_odom, sensors)
         self.create_subscription(DockStatus, "dock_status", self.on_dock, sensors)
         self.create_subscription(BatteryState, "battery_state", self.on_battery, sensors)
         self.create_subscription(HazardDetectionVector, "hazard_detection", self.on_hazard, sensors)
@@ -137,9 +136,9 @@ class Explorer(Node):
     def on_pose(self, pose_msg: PoseWithCovarianceStamped) -> None:
         self.robot = (pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y)
         if self.ready and self.finish is not None and not self.finished:
-            if math.dist(self.robot, self.finish) <= FINISH_RADIUS:
-                self.get_logger().info("finish reached")
-                self.finished = True
+            distance = math.dist(self.robot, self.finish)
+            if distance <= FINISH_RADIUS:
+                self.finish_reached(f"the robot is {distance:.2f} m from it")
 
     def on_scan(self, scan: LaserScan) -> None:
         self.scans.append(scan)
@@ -191,6 +190,12 @@ class Explorer(Node):
 
     def get_ready(self) -> None:
         """Leave the dock, turn parallel to the walls and start the odometry and map from here."""
+        # every message costs CPU in Python, so scans and odometry are only listened to here
+        sensors = qos_profile_sensor_data
+        subscriptions = [
+            self.create_subscription(LaserScan, "scan", self.on_scan, sensors),
+            self.create_subscription(Odometry, "odom", self.on_odom, sensors),
+        ]
         # the robot sends its battery state every 5 s
         self.wait_for(
             lambda: self.scans and self.odom and self.dock and self.battery is not None,
@@ -218,6 +223,8 @@ class Explorer(Node):
             dx, dy = fx - before_reset[0], fy - before_reset[1]
             c, s = math.cos(-before_reset[2]), math.sin(-before_reset[2])
             self.set_finish((c * dx - s * dy, s * dx + c * dy))
+        for subscription in subscriptions:
+            self.destroy_subscription(subscription)
         self.ready = True
         self.get_logger().info("ready, exploring")
 
@@ -380,10 +387,13 @@ class Explorer(Node):
         self.goal_is_finish = False
         if self.finish is not None:
             finish = frontiers.world_to_cell(self.finish, self.origin, self.resolution)
-            usable = frontiers.usable_cells([finish], clear, limit, min_clear, blocked, 0)
-            if finish in self.steps and usable:
+            # the finish counts as reached within FINISH_RADIUS, so one at a wall can be reached
+            # from the nearest cell with enough room (seen on the robot)
+            near = frontiers.cells_within(list(self.steps), finish, self.cells(FINISH_RADIUS))
+            usable = frontiers.usable_cells(near, clear, limit, min_clear, blocked, 0)
+            if usable:
                 self.goal_is_finish = True
-                return finish
+                return usable[0]
 
         goals = []
         for cells in self.found:
@@ -414,7 +424,16 @@ class Explorer(Node):
     def result_done(self, future) -> None:
         status = future.result().status
         self.get_logger().info(f"goal {RESULTS.get(status, f'ended with status {status}')}")
+        # Nav2 stops up to 0.25 m from a goal (xy_goal_tolerance), and a goal for a finish
+        # at a wall is up to FINISH_RADIUS from it, so the check in on_pose() can miss it
+        if status == GoalStatus.STATUS_SUCCEEDED and self.goal_is_finish and not self.finished:
+            # the pose from slam_toolbox comes only twice a second, so no distance here
+            self.finish_reached("Nav2 got to the goal there")
         self.goal_finished()
+
+    def finish_reached(self, how: str) -> None:
+        self.get_logger().info(f"finish reached, {how}")
+        self.finished = True
 
     def goal_finished(self) -> None:
         if self.goal is not None:

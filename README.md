@@ -93,11 +93,13 @@ is to the left. On the dock the robot faces the dock, so straight out into
 the maze is 180. The robot explores on the way: it picks the frontier with
 the shortest drive plus the straight distance from there to the finish, and
 drives to the finish itself as soon as the map shows a free way to it. It
-stops once it is within 0.3 m of the finish.
+stops once it is within 0.3 m of the finish, so a finish right at a wall
+works too.
 
 ### Safety
 
-Before `drive:=true`: nobody and no cables in the maze, and someone watching.
+Before `drive:=true`: nobody and no cables in the maze, someone watching, and
+the robot on its dock or at least 0.3 m from any wall.
 The robot drives at 0.15 m/s at most, and Nav2's collision monitor slows it
 down and stops it when the lidar shows an obstacle less than 1.2 s ahead. The
 explorer stops by itself:
@@ -121,9 +123,11 @@ ros2 service call /robot_10/e_stop irobot_create_msgs/srv/EStop "{e_stop_on: tru
 
 - The Create 3 refuses to drive backwards more than a few centimetres, so
   when Nav2 is stuck it only turns and waits.
-- On the first run the robot got stuck 0.24 m from a wall, Nav2 wouldn't
-  drive or turn there. Goals are kept 0.25 m from walls now, the 90 s limit
-  gives up a goal if it happens again.
+- Very close to a wall Nav2 won't drive ("collision ahead" in its log). On
+  the first run the robot got stuck 0.24 m from a wall, and a run that
+  started right at the end of a wall lost its first goal before Nav2 got
+  the robot free. Goals are kept 0.25 m from walls now, and the 90 s limit
+  gives up a goal that doesn't work out.
 - Turning to the walls needs straight walls within 4 m. Without them the
   robot doesn't turn and the map stays as it is.
 - The finish is turned into map coordinates from the odometry of the undock

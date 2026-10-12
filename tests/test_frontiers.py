@@ -222,6 +222,21 @@ def test_distance_is_counted_along_the_way_around_walls():
     assert frontiers.best_goal(goals_of(found, grid, limit=1), steps) == (5, 4)
 
 
+def test_cells_within_a_radius_nearest_first():
+    cells = [(5, 5), (3, 0), (1, 1), (0, 0)]
+    assert frontiers.cells_within(cells, (0, 0), 3) == [(0, 0), (1, 1), (3, 0)]
+
+
+def test_finish_at_a_wall_is_reached_from_the_nearest_cell_with_room():
+    grid = grid_from(NEXT_TO_A_WALL)
+    steps = frontiers.reachable_cells(grid, (3, 0))
+    clear = frontiers.clearance(grid, 5)
+    # the finish (3, 4) is right above the wall in row 5, with 2 cells of clearance
+    # needed the nearest goal is the cell above it
+    near = frontiers.cells_within(list(steps), (3, 4), 3)
+    assert frontiers.usable_cells(near, clear, 5, 2, [], 0)[0] == (3, 3)
+
+
 def test_usable_cells_leaves_out_cells_at_walls_and_near_tried_goals():
     grid = grid_from(NEXT_TO_A_WALL)
     clear = frontiers.clearance(grid, 5)

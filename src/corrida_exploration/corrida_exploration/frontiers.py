@@ -150,6 +150,11 @@ def is_blocked(cell: Cell, blocked: list[Cell], radius: int) -> bool:
     return False
 
 
+def cells_within(cells: list[Cell], target: Cell, radius: int) -> list[Cell]:
+    near = [cell for cell in cells if math.dist(cell, target) <= radius]
+    return sorted(near, key=lambda cell: math.dist(cell, target))
+
+
 def usable_cells(
     cells: list[Cell],
     clear: dict[Cell, int],
