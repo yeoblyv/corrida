@@ -1,0 +1,191 @@
+---
+title: "Autonomous Maze Navigation with an iRobot Create 3 Using Infrared Sensing and LiDAR"
+author:
+  - name: Marjan Rahimof
+    note: "All authors are with the Master Smart Systems Engineering, Hanze University of Applied Sciences, Groningen, The Netherlands. Introduction Project (SEVM25IP), Group 6."
+  - name: Daniel Chiemezie Nwadike
+  - name: Mark Rijpstra
+  - name: Yehor Oblyvantsov
+tex-author-no-affiliation: true
+abstract: |
+  <!-- Write this LAST. 4-6 sentences: problem, solution, key results, conclusion. -->
+  Autonomous navigation through an unknown maze requires a robot to perceive
+  walls, decide on a direction and recover from errors without human input.
+  This paper presents [our solution] for an iRobot Create 3 running ROS 2 Jazzy,
+  using its built-in infrared (IR) proximity sensors, bumpers and a 2D LiDAR.
+  We compare [design A] with [design B] in [N] test runs in the same maze.
+  [Key result with a number, e.g. success rate and mean completion time.]
+  [One-sentence conclusion.]
+keywords:
+  - mobile robotics
+  - maze navigation
+  - wall following
+  - finite-state machine
+  - ROS 2
+  - LiDAR
+pageheader:
+  left: "Introduction Project SEVM25IP, Hanze, October 2026"
+  right: "Rahimof et al.: Autonomous Maze Navigation"
+bibliography: bibliography.bib
+header-includes:
+  - |
+    \AtBeginDocument{%
+      \renewenvironment{longtable}[1][]{\begin{tabular}}{\end{tabular}}%
+      \def\endhead{}\def\endfirsthead{}\def\endfoot{}\def\endlastfoot{}%
+    }
+format:
+  ieee-pdf: default
+---
+
+# Introduction
+
+<!-- Rubric 20%: research and analyse the problem. Back every claim with a citation or own test. -->
+
+Autonomous navigation is a core capability of mobile robots: the robot must sense
+its surroundings, decide where to go and act on that decision in a closed loop
+[@benari2018elements; @corke2023robotics]. Maze solving is a classic, well-defined
+version of this problem. [Add 2-3 sentences on why mazes are a useful test case and
+which known strategies exist, with citations.]
+
+## Problem statement
+
+The task is to program an iRobot Create 3 so that it drives autonomously from a
+start point to a finish point through a maze it has not seen before. The maze has a
+flat floor and walls at approximately 90° to each other, and it may contain loops.
+The start and finish are revealed only minutes before the demonstration.
+
+<!-- Make the research question specific and measurable, never just "best". Example: -->
+This leads to the following research question: *[Which of the two controllers,
+A or B, reaches the finish more often and in less time in a previously unseen maze
+with loops?]*
+
+## System description
+
+The platform consists of the components listed in @tbl-hardware. The Create 3
+publishes its sensor data and receives velocity commands over ROS 2
+[@macenski2022ros2; @create3docs]. Our control software runs as a Python node on
+the Raspberry Pi.
+
+::: {#tbl-hardware layout-ncol=1}
+| Component | Model / version | Role |
+|---|---|---|
+| Mobile base | iRobot Create 3 | wheels, 7 IR proximity sensors, bumpers, odometry |
+| Computer | Raspberry Pi 4 | runs our control node |
+| LiDAR | Slamtec RPLiDAR A1M8 | 360° distance measurement [@rplidara1] |
+| Operating system | Ubuntu 24.04 | |
+| Middleware | ROS 2 Jazzy, Cyclone DDS | communication between nodes |
+| Language | Python [version] | control program |
+
+Hardware and software used.
+:::
+
+The seven IR sensors return a dimensionless reflection intensity; a larger value
+means a closer obstacle. They are fused into three directions: *front* is the
+maximum of the four front sensors, *left* is the maximum of the two left sensors
+(side_left and left), and *right* is the single right sensor. The maximum is used
+because the closest wall in a direction determines the robot's reaction.
+
+# Design
+
+<!-- Rubric 25%: design a solution; compare at least 2 designs WITH literature for an 8. -->
+
+## Design A: reactive priority controller
+
+The first design is purely reactive: at 10 Hz it reads the latest IR values and
+applies four rules in priority order (@tbl-reactive). It keeps no memory of earlier
+decisions.
+
+::: {#tbl-reactive layout-ncol=1}
+| Priority | Condition | Action |
+|---|---|---|
+| 1 | $front > 300$ | stop, rotate towards the more open side |
+| 2 | $left > 200$ | drive forward, steer right |
+| 3 | $right > 200$ | drive forward, steer left |
+| 4 | otherwise | drive straight |
+
+Rules of the reactive controller (Design A).
+:::
+
+## Design B: left-hand wall follower as a finite-state machine
+
+The second design implements the left-hand rule [@benari2018elements]: by keeping a
+wall on its left, the robot eventually reaches an exit that is connected to the
+outer wall. Behaviour is organised as a finite-state machine with the states
+FIND_WALL, FOLLOW_WALL, TURN_RIGHT, TURN_LEFT and BACK_UP. Hysteresis
+($front > 300$ to start turning, $front < 150$ to stop) prevents oscillation, and a
+proportional controller keeps a constant distance to the left wall:
+
+$$
+\omega = -K_p \,(left - left_{target})
+$$ {#eq-pcontrol}
+
+where $\omega$ is the angular velocity (rad/s) and $K_p$ the proportional gain.
+
+## Design C: LiDAR-based navigation
+
+[Describe the LiDAR design if it is used in the demo.]
+
+## Comparison of designs
+
+[Compare the designs on memory, robustness to sensor noise, handling of loops and
+dead ends, and implementation effort, with references. Explain which design was
+chosen for the demonstration and why.]
+
+# Methods
+
+<!-- Experiments: calibration and validation. Must be reproducible (for a 10). -->
+
+## Calibration of the IR thresholds
+
+[Describe how the thresholds were measured: distance to wall in cm, number of
+readings, mean and standard deviation.]
+
+## Validation experiments
+
+Each design was tested on the following sequence: a single straight wall, an inside
+corner, an outside corner, and a complete test maze. For each run we recorded
+whether the robot reached the finish, the completion time (s) and the number of
+bumper contacts. [Describe the test maze: size in m, layout, number of loops.]
+
+The source code is available at [GitHub link].
+
+# Results
+
+<!-- Only facts and numbers here, no interpretation. -->
+
+::: {#tbl-results layout-ncol=1}
+| Design | Runs | Successful | Mean time (s) | Mean bumps |
+|---|---|---|---|---|
+| A: reactive | | | | |
+| B: wall follower | | | | |
+
+Results of the validation runs in the test maze.
+:::
+
+[Report the demonstration result: round 1 and round 2.]
+
+# Discussion and conclusion
+
+[Interpret the results in @tbl-results, compare them with literature, name the
+limitations (e.g. looping around free-standing wall sections) and answer the
+research question. End with a conclusion and future work.]
+
+# Acknowledgements {.unnumbered}
+
+<!-- Grades are individual: show who did what and how much. -->
+
+::: {#tbl-contrib layout-ncol=1}
+| Member | Contribution | Share (%) |
+|---|---|---|
+| Marjan Rahimof | | |
+| Daniel Chiemezie Nwadike | | |
+| Mark Rijpstra | | |
+| Yehor Oblyvantsov | | |
+
+Contribution of each group member.
+:::
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
