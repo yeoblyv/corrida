@@ -23,6 +23,7 @@ from bump_target import BumpTarget
 from obstacle_avoider import ObstacleAvoider
 from wall_follower import WallFollower
 from wall_follower_robust import WallFollowerRobust
+from goal_seeking_wall_follower import GoalSeekingWallFollower
 
 # name you type -> how to create that behaviour
 BEHAVIOURS = {
@@ -30,6 +31,8 @@ BEHAVIOURS = {
     'wall_right': lambda: WallFollower('right'),
     'wall_left_robust': lambda: WallFollowerRobust('left'),
     'wall_right_robust': lambda: WallFollowerRobust('right'),
+    'wall_left_bug': lambda: GoalSeekingWallFollower('left'),
+    'wall_right_bug': lambda: GoalSeekingWallFollower('right'),
     'bump': BumpTarget,
     'avoid': ObstacleAvoider,
 }
