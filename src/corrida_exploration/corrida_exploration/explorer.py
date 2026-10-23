@@ -123,6 +123,9 @@ class Explorer(Node):
         self.goal_pub = self.create_publisher(PoseStamped, "exploration_goal", 1)
         self.finish_pub = self.create_publisher(PoseStamped, "finish", latched)
         self.nav2 = ActionClient(self, NavigateToPose, "navigate_to_pose")
+        # the robot's own actions and services:
+        # https://iroboteducation.github.io/create3_docs/api/ros2/
+        # and their message definitions: https://github.com/iRobotEducation/irobot_create_msgs
         self.undock_client = ActionClient(self, Undock, "undock")
         self.rotate_client = ActionClient(self, RotateAngle, "rotate_angle")
         self.reset_pose_client = self.create_client(ResetPose, "reset_pose")
@@ -505,12 +508,15 @@ def goal_point(goal: PoseStamped) -> tuple[float, float]:
 
 def yaw_of(q) -> float:
     """Return the yaw (rad) of a quaternion, the robot only turns about z."""
+    # the yaw formula from
+    # https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
     return math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z))
 
 
 def main() -> None:
     # Nav2 keeps driving when this node just dies, so Ctrl+C and SIGTERM must reach the
     # except below while rclpy still works, rclpy's own handler would shut it down first
+    # (init() and SignalHandlerOptions: https://docs.ros.org/en/jazzy/p/rclpy/rclpy.html)
     signal.signal(signal.SIGINT, signal.default_int_handler)
     signal.signal(signal.SIGTERM, signal.default_int_handler)
     rclpy.init(signal_handler_options=SignalHandlerOptions.NO)

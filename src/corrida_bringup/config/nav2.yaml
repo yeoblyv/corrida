@@ -48,7 +48,9 @@
     FollowPath:
       # MPPI, like the TurtleBot 4. Pure pursuit got stuck at walls and in doorways (its
       # check counts the robot as touching a wall with 3-7 cm still left), MPPI prefers
-      # ways away from walls and explored the whole simulated maze in 3 minutes
+      # ways away from walls and explored the whole simulated maze in 3 minutes.
+      # What the parameters and critics do:
+      # https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/configuration_guide/controller_plugins/mppi_controller/configuring_mppic.md
       plugin: "nav2_mppi_controller::MPPIController"
       time_steps: 30  # upstream 56, with model_dt 0.1 that is 3 s ahead
       model_dt: 0.1  # upstream 0.05, = 1 / controller_frequency
@@ -63,7 +65,9 @@
       # upstream 0.4, with less spread the robot crept between a wall and a pole in the simulation
       wz_std: 0.6
       vx_max: 0.15  # m/s, upstream 0.5, slow on purpose, the robot can do 0.306
-      vx_min: 0.0  # upstream -0.35, the Create 3 only drives backwards a few centimetres
+      # upstream -0.35, the Create 3 only drives backwards a few centimetres (its backup
+      # limit): https://iroboteducation.github.io/create3_docs/api/safety/
+      vx_min: 0.0
       vy_max: 0.5
       wz_max: 0.8  # rad/s, upstream 1.9, slam_toolbox likes slow turns
       iteration_count: 1
@@ -241,7 +245,8 @@
     base_shift_correction: True
     stop_pub_timeout: 2.0
     # the robot's footprint is moved ahead along the commanded speed, and the robot
-    # slows down or stops before the footprint would reach a scan point
+    # slows down or stops before the footprint would reach a scan point ("approach"):
+    # https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/configuration_guide/core_servers/collision_monitor/configuring_collision_monitor_node.md
     polygons: ["FootprintApproach"]
     FootprintApproach:
       type: "polygon"

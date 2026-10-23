@@ -29,7 +29,8 @@ def room_scan(
         dx, dy = math.cos(a), math.sin(a)
         best = math.inf
         for (x1, y1), (x2, y2) in sides:
-            # crossing of the beam with one side of the room
+            # crossing of the beam with one side of the room, t and u as in
+            # https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
             ex, ey = x2 - x1, y2 - y1
             den = dx * ey - dy * ex
             if abs(den) < 1e-12:

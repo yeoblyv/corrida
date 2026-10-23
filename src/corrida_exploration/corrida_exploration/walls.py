@@ -45,9 +45,11 @@ def wall_pieces(points: list[Point]) -> list[tuple[float, float]]:
         sxx = sum((p[0] - mx) ** 2 for p in window)
         syy = sum((p[1] - my) ** 2 for p in window)
         sxy = sum((p[0] - mx) * (p[1] - my) for p in window)
-        # direction of the line through the points (principal axis of the 2x2 covariance)
+        # direction of the line through the points: the principal axis of the 2x2 covariance,
+        # same formula as the orientation in https://en.wikipedia.org/wiki/Image_moment
         direction = 0.5 * math.atan2(2 * sxy, sxx - syy)
-        # spread along and across that line, to drop corners and round things
+        # spread along and across that line (the two eigenvalues, see the same page), to drop
+        # corners and round things
         along = (sxx + syy) / 2 + math.hypot((sxx - syy) / 2, sxy)
         across = (sxx + syy) / 2 - math.hypot((sxx - syy) / 2, sxy)
         if across > 0 and along / across < MIN_STRAIGHTNESS**2:
@@ -58,6 +60,7 @@ def wall_pieces(points: list[Point]) -> list[tuple[float, float]]:
 
 def mean_direction_mod_90(pieces: list[tuple[float, float]]) -> float:
     """Average direction modulo 90 degrees, weighted by length, in (-45, 45] deg as rad."""
+    # a circular mean of the angle times 4: https://en.wikipedia.org/wiki/Circular_mean
     c = sum(length * math.cos(4 * direction) for direction, length in pieces)
     s = sum(length * math.sin(4 * direction) for direction, length in pieces)
     return math.atan2(s, c) / 4

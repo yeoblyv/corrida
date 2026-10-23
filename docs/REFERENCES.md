@@ -66,27 +66,53 @@ page yourself before you add it.
 - Alvarez, C. (2026). *explore_lite* (Version 1.0.0) [Computer software].
   GitHub. Retrieved October 5, 2026, from
   https://github.com/robo-friends/m-explore-ros2
+- Circular mean. (n.d.). In *Wikipedia*. Retrieved October 20, 2026, from
+  https://en.wikipedia.org/wiki/Circular_mean
 - Clearpath Robotics. (2025). *turtlebot4* (Version 2.1.1) [Computer software].
   GitHub. Retrieved October 9, 2026, from https://github.com/turtlebot/turtlebot4
+- Conversion between quaternions and Euler angles. (n.d.). In *Wikipedia*.
+  Retrieved October 20, 2026, from
+  https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 - Hanze University of Applied Sciences, Library. (n.d.). *APA guidelines
   (7th)*. Retrieved September 11, 2026, from
   https://libguides.hanze.nl/apa_guidelines_7
-- iRobot Corporation. (n.d.). *iRobot® Create® 3 Docs*. Retrieved
+- Image moment. (n.d.). In *Wikipedia*. Retrieved October 20, 2026, from
+  https://en.wikipedia.org/wiki/Image_moment
+- iRobot Corporation. (n.d.-a). *Create® 3 Safety Overrides*. iRobot Create 3
+  Docs. Retrieved October 20, 2026, from
+  https://iroboteducation.github.io/create3_docs/api/safety/
+- iRobot Corporation. (n.d.-b). *iRobot® Create® 3 Docs*. Retrieved
   September 11, 2026, from https://iroboteducation.github.io/create3_docs/
+- iRobot Corporation. (n.d.-c). *ROS 2 Interface*. iRobot Create 3 Docs.
+  Retrieved October 20, 2026, from
+  https://iroboteducation.github.io/create3_docs/api/ros2/
+- iRobot Education. (n.d.). *irobot_create_msgs* [Computer software]. GitHub.
+  Retrieved October 20, 2026, from
+  https://github.com/iRobotEducation/irobot_create_msgs
+- Line–line intersection. (n.d.). In *Wikipedia*. Retrieved October 20, 2026,
+  from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 - Macenski, S. (2026). *Nav2* (Version 1.3.13) [Computer software]. GitHub.
   Retrieved October 9, 2026, from https://github.com/ros-navigation/navigation2
 - Macenski, S. (2026). *slam_toolbox* (Version 2.8.4) [Computer software].
   GitHub. Retrieved October 2, 2026, from
   https://github.com/SteveMacenski/slam_toolbox
+- Open Navigation LLC. (n.d.-a). *Collision Monitor Node*. Nav2 Documentation.
+  Retrieved October 20, 2026, from
+  https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/configuration_guide/core_servers/collision_monitor/configuring_collision_monitor_node.md
+- Open Navigation LLC. (n.d.-b). *Model Predictive Path Integral Controller*.
+  Nav2 Documentation. Retrieved October 20, 2026, from
+  https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/configuration_guide/controller_plugins/mppi_controller/configuring_mppic.md
+- Open Navigation LLC. (n.d.-c). *Tuning guide*. Nav2 Documentation.
+  Retrieved October 12, 2026, from
+  https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/tuning_guide.md
 - Open Robotics. (n.d.-a). *Quality of Service settings*. ROS 2 Documentation:
   Jazzy. Retrieved October 9, 2026, from
   https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Quality-of-Service-Settings.html
-- Open Robotics. (n.d.-b). *Writing an action server and client (Python)*.
+- Open Robotics. (n.d.-b). *rclpy*. ROS 2 Documentation: Jazzy. Retrieved
+  October 20, 2026, from https://docs.ros.org/en/jazzy/p/rclpy/rclpy.html
+- Open Robotics. (n.d.-c). *Writing an action server and client (Python)*.
   ROS 2 Documentation: Jazzy. Retrieved October 9, 2026, from
   https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html
-- Open Navigation LLC. (n.d.). *Tuning guide*. Nav2 Documentation.
-  Retrieved October 12, 2026, from
-  https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/tuning_guide.md
 - Slamtec. (n.d.). *RPLIDAR A1 low cost 360 degree laser range scanner:
   Introduction and datasheet* (Model A1M8). Retrieved October 2, 2026, from
   https://www.slamtec.com/en/support
