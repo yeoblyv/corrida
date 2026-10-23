@@ -2,7 +2,7 @@
 Find frontiers in a SLAM map: the places where free space borders unknown space.
 
 Exploring a map by driving to its frontiers is from Yamauchi (1997),
-https://doi.org/10.1109/CIRA.1997.613851 (full citation: docs/REFERENCES.md).
+https://doi.org/10.1109/CIRA.1997.613851
 No ROS in this file, so it is tested with pytest in tests/.
 """
 

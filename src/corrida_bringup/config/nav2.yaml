@@ -5,7 +5,7 @@
 # https://github.com/ros-navigation/navigation2/blob/1.3.13/nav2_bringup/params/nav2_params.yaml
 # and on the Nav2 tuning guide:
 # https://github.com/ros-navigation/docs.nav2.org/blob/rolling/docs/configuration_and_development/tuning_guide.md
-# (full citations: docs/REFERENCES.md). Values we changed have a comment.
+# Values we changed have a comment.
 # The keys start with /** so they also match the nodes inside the robot namespace.
 
 /**/bt_navigator:

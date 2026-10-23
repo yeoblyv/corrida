@@ -6,7 +6,6 @@ Servers and wiring are from navigation_launch.py of nav2_bringup 1.3.13 and from
 TurtleBot 4 (same robot base and lidar):
 https://github.com/ros-navigation/navigation2/blob/1.3.13/nav2_bringup/launch/navigation_launch.py
 https://github.com/turtlebot/turtlebot4/blob/jazzy/turtlebot4_navigation/launch/nav2.launch.py
-(full citations: docs/REFERENCES.md)
 """
 
 import os

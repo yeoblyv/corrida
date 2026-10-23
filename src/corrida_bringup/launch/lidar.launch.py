@@ -3,7 +3,6 @@ Start the RPLIDAR A1M8 driver and the transform for how it is mounted.
 
 Driver settings are from rplidar.launch.py of rplidar_ros 2.1.0 (ROS 2 Jazzy):
 https://github.com/ros2-gbp/rplidar_ros-release/blob/release/jazzy/rplidar_ros/2.1.0-4/launch/rplidar.launch.py
-(full citation: docs/REFERENCES.md)
 """
 
 import math

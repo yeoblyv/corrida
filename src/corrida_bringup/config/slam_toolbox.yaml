@@ -1,6 +1,6 @@
 # slam_toolbox config, based on mapper_params_online_async.yaml of slam_toolbox 2.8.4:
 # https://github.com/SteveMacenski/slam_toolbox/blob/2.8.4/config/mapper_params_online_async.yaml
-# (full citation: docs/REFERENCES.md). Values we changed have a comment.
+# Values we changed have a comment.
 
 # "/**" and not "slam_toolbox", so it also matches the node inside the robot namespace
 /**:
