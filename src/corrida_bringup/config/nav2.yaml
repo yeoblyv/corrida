@@ -66,7 +66,7 @@
       wz_std: 0.6
       # m/s, upstream 0.5, slow on purpose, the robot can do 0.306:
       # https://iroboteducation.github.io/create3_docs/api/safety/
-      vx_max: 0.15
+      vx_max: 0.25
       # upstream -0.35, the Create 3 only drives backwards a few centimetres (its backup
       # limit): https://iroboteducation.github.io/create3_docs/api/safety/
       vx_min: 0.0
