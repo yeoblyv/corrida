@@ -21,6 +21,7 @@
 <p align="center">
   <a href="#about"><b>About</b></a> &nbsp;·&nbsp;
   <a href="#quickstart"><b>Quickstart</b></a> &nbsp;·&nbsp;
+  <a href="#exploring-on-its-own"><b>Exploring</b></a> &nbsp;·&nbsp;
   <a href="#hardware--environment"><b>Hardware</b></a> &nbsp;·&nbsp;
   <a href="#team---group-6"><b>Team</b></a> &nbsp;·&nbsp;
   <a href="#deadlines"><b>Deadlines</b></a> &nbsp;·&nbsp;
@@ -37,50 +38,139 @@ an unknown maze, fusing its IR proximity sensors and a self-installed LiDAR, via
 
 ## Quickstart
 
+On Ubuntu 24.04 with ROS 2 Jazzy:
+
 ```bash
 git clone https://github.com/yeoblyv/corrida.git
 cd corrida
-source /opt/ros/jazzy/setup.bash
+source scripts/env.sh
+./scripts/install-deps.sh
 ./scripts/build.sh
-source install/setup.bash
+source scripts/env.sh
 ```
 
-Package-specific run instructions live with each package under `src/` once
-they exist.
+On the robot's Pi, with the lidar plugged in, this starts the lidar driver
+and slam_toolbox:
+
+```bash
+ros2 launch corrida_bringup bringup.launch.py
+```
+
+## Exploring on its own
+
+Nav2 drives with the MPPI controller, which isn't in the Nav2 packages from
+the start. Install it once (or run `./scripts/install-deps.sh`):
+
+```bash
+sudo apt install ros-jazzy-nav2-mppi-controller
+```
+
+Three terminals on the Pi, `source scripts/env.sh` in each:
+
+```bash
+ros2 launch corrida_bringup bringup.launch.py
+ros2 launch corrida_bringup nav2.launch.py
+ros2 launch corrida_exploration explore.launch.py drive:=true
+```
+
+With `drive:=true` the robot:
+
+1. leaves the dock, if it is on it,
+2. turns until it is parallel to the walls it sees with the lidar, then
+   starts its odometry and the slam map again from there, so the walls in
+   the map run along the x and y axes (`align:=false` skips the turn),
+3. looks for the borders between the mapped and the unknown part of the
+   map (frontiers) and sends the nearest one to Nav2 as a goal, until none
+   is left.
+
+Without `drive:=true` nothing moves and the goals are only shown, which is a
+safe way to watch it while driving with teleop. Run only one explorer at a
+time. In Foxglove add `/map`, `/robot_10/frontiers`,
+`/robot_10/exploration_goal`, `/robot_10/finish` and `/robot_10/plan`.
+
+### With a finish
+
+```bash
+ros2 launch corrida_exploration explore.launch.py drive:=true finish_distance:=3.0 finish_angle:=30
+```
+
+The finish is a distance (m) and an angle (deg) from the pose the robot has
+when the explorer starts: 0 is where the robot faces then, a positive angle
+is to the left. On the dock the robot faces the dock, so straight out into
+the maze is 180. The robot explores on the way: it picks the frontier with
+the shortest drive plus the straight distance from there to the finish, and
+drives to the finish itself as soon as the map shows a free way to it. It
+stops once it is within 0.3 m of the finish, so a finish right at a wall
+works too.
+
+### Safety
+
+Before `drive:=true`: nobody and no cables in the maze, someone watching, and
+the robot on its dock or at least 0.3 m from any wall.
+The robot drives at 0.15 m/s at most, and Nav2's collision monitor slows it
+down and stops it when the lidar shows an obstacle less than 1.2 s ahead. The
+explorer stops by itself:
+
+- after `max_minutes` (default 10),
+- below 20 % battery, on the dock it doesn't leave the dock then,
+- after 3 bumps,
+- when no frontier is left.
+
+A goal that isn't reached in 90 s is given up. Ctrl+C in the explorer's
+terminal stops it, it cancels the turn or the Nav2 goal first. If the robot
+still moves, cut the wheel power:
+
+```bash
+ros2 service call /robot_10/e_stop irobot_create_msgs/srv/EStop "{e_stop_on: true}"
+```
+
+`e_stop_on: false` switches the wheels on again.
+
+### Known issues
+
+- The Create 3 refuses to drive backwards more than a few centimetres, so
+  when Nav2 is stuck it only turns and waits.
+- With the pure pursuit controller the robot got stuck next to walls and
+  in doorways and turned on the spot ("collision ahead" in the Nav2 log).
+  Its check counted the robot as touching a wall with 3-7 cm still left,
+  and from there no recovery moved it. Nav2 now uses MPPI, smaller cells
+  in the local costmap and a wider inflation (comments in
+  `src/corrida_bringup/config/nav2.yaml`). That was tested in a simulation
+  of our maze, not on the robot yet.
+- Turning to the walls needs straight walls within 4 m. Without them the
+  robot doesn't turn and the map stays as it is.
+- The finish is turned into map coordinates from the odometry of the undock
+  and the turns. An error of 1 degree there puts a finish 5 m away about
+  9 cm off.
+- The lidar height isn't measured yet, the tf has it at floor height. The
+  Nav2 costmaps accept scan points from -0.5 m up because of that.
+- slam_toolbox gets slower the longer it runs, restart the bringup before
+  a run.
+- With everything running the Pi got to 83 C and slowed itself down, then
+  Nav2 starts timing out. It needs a heatsink or a fan.
 
 ## Hardware & environment
 
 * **Robot:** iRobot Create 3 - 7x IR obstacle sensors, 4x cliff sensors,
   optical odometer.
-* **Added:** self-installed LiDAR + Raspberry Pi.
-* **Maze:** unknown to the robot, flat ground, walls at ~90°, may contain
-  loops, fixed start/finish positions.
+* **Added:** self-installed LiDAR (RPLIDAR A1M8) + Raspberry Pi 4.
+* **Maze:** unknown to the robot, flat ground, walls at about 90 degrees,
+  may contain loops, fixed start/finish positions.
 * **Run window:** 8 + 8 minutes (disjoint attempts) on demo day.
 * **Environment:** ROS 2 Jazzy Jalisco on Ubuntu 24.04 (VM or Raspberry Pi
-  4), Foxglove for visualization - see [AGENTS.md](AGENTS.md) for the full
-  workshop environment and the AI assistant's operating rules.
-
-Hardware and maze constraints per E. Bergsma, F. N. Martins, & F. J.
-Guzman (personal communication, September 11, 2026, slides 6-8) - full
-citation policy in [docs/REFERENCES.md](docs/REFERENCES.md).
+  4), Foxglove for visualization. [AGENTS.md](AGENTS.md) has the rules for
+  AI assistants used with this repo.
 
 ## Team - Group 6
 
-* **Mark Rijpstra** - leader: overall direction for the team.
-* **Marjan Rahimof** - planning & communication: day-to-day task
-  sequencing, main point of contact.
-* **Yehor Oblyvantsov** - GitHub: repository, git workflow,
-  `CONTRIBUTING.md`/`AGENTS.md`, compiles the final report.
-* **Daniel Chiemezie Nwadike** - meeting minutes: keeps the record of
-  what's decided at each meeting.
-* Tutor: Ewout Bergsma.
+* **Mark Rijpstra** - leader
+* **Marjan Rahimof** - planning and communication
+* **Yehor Oblyvantsov** - GitHub and the repo, puts the final report together
+* **Daniel Chiemezie Nwadike** - meeting minutes
+* Tutor: Ewout Bergsma
 
-Roles are primary accountability, not a coding hierarchy - everyone
-contributes to the software roughly equally; see
+Everyone works on the code. The roles are from our first meeting, see
 [ADR-0001](docs/adr/0001-team-roles-and-working-agreement.md).
-
-Roster and tutor assignment per E. Bergsma, F. N. Martins, & F. J.
-Guzman (personal communication, September 11, 2026, slides 4-5).
 
 ## Deadlines
 
@@ -89,50 +179,32 @@ Guzman (personal communication, September 11, 2026, slides 4-5).
 | 2026-09-20 | Individual learning goals + plan | No |
 | 2026-09-29 | Group progress presentation | No |
 | 2026-10-20 | Group demonstration | Yes |
-| 2026-10-25 | Group report (IEEE, ≤6 pages) | Yes |
+| 2026-10-25 | Group report (IEEE, max 6 pages) | Yes |
 | 2026-11-02 | Individual reflection | No |
 
-Per E. Bergsma, F. N. Martins, & F. J. Guzman (personal communication,
-September 11, 2026, slide 3). If Brightspace ever states a different
-date, Brightspace wins - update this table, the citation, and
-[docs/course-materials/](docs/course-materials/) together.
+The dates, the maze rules and the group list are from the kickoff slides
+(E. Bergsma, F. N. Martins, & F. J. Guzman, personal communication,
+September 11, 2026). If Brightspace says something else, Brightspace wins.
 
 ## Repository structure
 
-```
-corrida/
-├── src/                    ROS2 packages (colcon workspace) - see src/README.md
-├── tests/                   pytest unit tests for hardware-independent logic
-├── notebooks/                demos, exploration, cheatsheets - see notebooks/README.md
-├── scripts/                  build/lint helpers
-├── docs/
-│   ├── REFERENCES.md         citation policy & bibliography (start here)
-│   ├── git-cheatsheet.md     day-to-day git commands (clone/branch/pull/push/PR)
-│   ├── assets/                images used in docs (e.g. the logo)
-│   ├── course-materials/     archived course documents
-│   ├── adr/                  architecture decision records
-│   └── learning-goals/       individual learning-goal + reflection pages
-├── IEEE/                    report draft (IEEE citation style, see IEEE/README.md)
-├── vms/                     local-only; VM snapshots are git-ignored, see CONTRIBUTING.md
-├── LICENSE                  MIT - code
-└── LICENSE-DOCS             CC BY 4.0 - report & documentation
-```
+- `src/` - ROS 2 packages (colcon workspace)
+- `tests/` - pytest tests for logic that doesn't need the robot
+- `notebooks/` - Jupyter notebooks with demos and notes
+- `scripts/` - setup, build and lint helpers
+- `docs/` - git cheatsheet, Pi accounts, references, decisions (`adr/`)
+- `vms/` - local VM snapshots, not in git
 
 ## Working rules
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full git workflow, commit
-convention, code style, self-testing requirements, and definition of done;
-[docs/git-cheatsheet.md](docs/git-cheatsheet.md) for the day-to-day
-commands (clone, branch, pull, push, PR - including setting up a new
-VM); and [docs/REFERENCES.md](docs/REFERENCES.md) for how every fact and
-every piece of adapted code gets cited.
+How we work is in [CONTRIBUTING.md](CONTRIBUTING.md). The day-to-day git
+commands are in [docs/git-cheatsheet.md](docs/git-cheatsheet.md), and how
+we cite sources is in [docs/REFERENCES.md](docs/REFERENCES.md).
 
 ## License
 
-Source code (`src/`, `scripts/`, `notebooks/`, `tests/`) is **MIT** -
-see [LICENSE](LICENSE). The report and documentation (`IEEE/`, `docs/`)
-are **CC BY 4.0** - see [LICENSE-DOCS](LICENSE-DOCS), which also states
-the one thing a license can't grant: permission to use this work to
-satisfy your own coursework on this or an equivalent assignment. That's
-governed by Hanze's academic integrity policy, not by us. Rationale in
-[ADR-0002](docs/adr/0002-licensing.md).
+Code (`src/`, `scripts/`, `notebooks/`, `tests/`) is MIT, see
+[LICENSE](LICENSE). The documentation and the report are CC BY 4.0, see
+[LICENSE-DOCS](LICENSE-DOCS). A license doesn't allow using this work for
+your own coursework, Hanze's academic integrity rules decide that. Why
+there are two licenses is in [ADR-0002](docs/adr/0002-licensing.md).

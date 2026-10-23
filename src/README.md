@@ -1,23 +1,15 @@
 # src/
 
-ROS2 colcon workspace source folder — the repository root is the workspace
-root. `colcon build` runs from there and produces `build/`, `install/`,
-`log/`, all git-ignored (see `.gitignore`).
+The ROS 2 packages. The repo root is the colcon workspace, so build from
+there with `./scripts/build.sh`.
 
-Each ROS2 package lives in its own subdirectory here, e.g.:
+- `corrida_bringup/` - launch files and config that start the lidar and
+  slam_toolbox (`bringup.launch.py`) and Nav2 (`nav2.launch.py`), plus
+  the odometry relay Nav2 needs with this robot
+- `corrida_exploration/` - finds the frontiers of the SLAM map, shows the
+  next place to explore in Foxglove and, with `drive:=true`, drives there
+  through Nav2
 
-```
-src/
-├── corrida_bringup/       # launch files, robot/LiDAR bring-up
-├── corrida_perception/    # IR + LiDAR fusion, obstacle/wall detection
-└── corrida_navigation/    # maze-solving / wall-following logic
-```
-
-Conventions:
-
-- Package names `snake_case`, prefixed `corrida_`.
-- One responsibility per package.
-- Keep pure algorithmic logic (no ROS2/rclpy dependency) in plain,
-  importable Python so it can be unit-tested under `tests/` without a
-  running robot or simulator — see `CONTRIBUTING.md` for the test and
-  review rules that apply to everything added here.
+New packages get the `corrida_` prefix. Logic that doesn't need ROS
+should stay plain Python, so it can be tested in `tests/` without the
+robot.

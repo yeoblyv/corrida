@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
+cd "$(dirname "$0")/.."
 
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
-
-if [ -z "${ROS_DISTRO:-}" ]; then
-  echo "ROS2 environment not sourced. Run: source /opt/ros/jazzy/setup.bash" >&2
+if [ -z "$ROS_DISTRO" ]; then
+  echo "ROS 2 is not sourced, run: source scripts/env.sh" >&2
   exit 1
 fi
 
 colcon build --symlink-install
-echo "Build complete. Run: source install/setup.bash"
+echo "Build done, now run: source scripts/env.sh"

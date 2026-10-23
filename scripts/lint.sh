@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+set -e
+cd "$(dirname "$0")/.."
 
 ruff check .
 black --check .
