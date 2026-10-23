@@ -1,7 +1,7 @@
 """
 Explore the maze on its own, or explore it on the way to a finish point.
 
-For every new map from slam_toolbox the best frontier goes to Nav2 as a goal, with a finish
+For every new map from slam_toolbox the best frontier goes to Nav2 as a goal; with a finish,
 the finish itself as soon as the map shows a free way to it. With drive:=false nothing moves
 and the goals are only shown.
 """
@@ -411,8 +411,8 @@ class Explorer(Node):
                 goals.append(frontiers.best_goal(usable, self.steps, finish))
         return frontiers.best_goal(goals, self.steps, finish)
 
+    # https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html
     def send_goal_done(self, future) -> None:
-        # https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().warn("Nav2 rejected the goal")

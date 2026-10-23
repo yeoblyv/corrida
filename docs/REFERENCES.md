@@ -91,9 +91,9 @@ page yourself before you add it.
   https://github.com/iRobotEducation/irobot_create_msgs
 - Line–line intersection. (n.d.). In *Wikipedia*. Retrieved October 20, 2026,
   from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-- Macenski, S. (2026). *Nav2* (Version 1.3.13) [Computer software]. GitHub.
+- Macenski, S. (2026a). *Nav2* (Version 1.3.13) [Computer software]. GitHub.
   Retrieved October 9, 2026, from https://github.com/ros-navigation/navigation2
-- Macenski, S. (2026). *slam_toolbox* (Version 2.8.4) [Computer software].
+- Macenski, S. (2026b). *slam_toolbox* (Version 2.8.4) [Computer software].
   GitHub. Retrieved October 2, 2026, from
   https://github.com/SteveMacenski/slam_toolbox
 - Open Navigation LLC. (n.d.-a). *Collision Monitor Node*. Nav2 Documentation.

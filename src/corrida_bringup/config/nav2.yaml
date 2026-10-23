@@ -64,7 +64,9 @@
       vy_std: 0.2
       # upstream 0.4, with less spread the robot crept between a wall and a pole in the simulation
       wz_std: 0.6
-      vx_max: 0.15  # m/s, upstream 0.5, slow on purpose, the robot can do 0.306
+      # m/s, upstream 0.5, slow on purpose, the robot can do 0.306:
+      # https://iroboteducation.github.io/create3_docs/api/safety/
+      vx_max: 0.15
       # upstream -0.35, the Create 3 only drives backwards a few centimetres (its backup
       # limit): https://iroboteducation.github.io/create3_docs/api/safety/
       vx_min: 0.0

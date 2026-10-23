@@ -78,7 +78,7 @@ With `drive:=true` the robot:
 1. leaves the dock, if it is on it,
 2. turns until it is parallel to the walls it sees with the lidar, then
    starts its odometry and the slam map again from there, so the walls in
-   the map run along the x and y axes (`align:=false` skips this),
+   the map run along the x and y axes (`align:=false` skips the turn),
 3. looks for the borders between the mapped and the unknown part of the
    map (frontiers) and sends the nearest one to Nav2 as a goal, until none
    is left.
@@ -135,8 +135,8 @@ ros2 service call /robot_10/e_stop irobot_create_msgs/srv/EStop "{e_stop_on: tru
   Its check counted the robot as touching a wall with 3-7 cm still left,
   and from there no recovery moved it. Nav2 now uses MPPI, smaller cells
   in the local costmap and a wider inflation (comments in
-  `config/nav2.yaml`). That was tested in a simulation of our maze, not on
-  the robot yet.
+  `src/corrida_bringup/config/nav2.yaml`). That was tested in a simulation
+  of our maze, not on the robot yet.
 - Turning to the walls needs straight walls within 4 m. Without them the
   robot doesn't turn and the map stays as it is.
 - The finish is turned into map coordinates from the odometry of the undock
