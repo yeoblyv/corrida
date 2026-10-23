@@ -1,0 +1,15 @@
+odometry_converter:
+  ros__parameters:
+
+    # odometry settings
+    # note: positive x is forward, positive y is left, (positive z is up,) and positive yaw is counter-clockwise. Example: turning from +x toward +y is a left turn, so +y is +90° and -y is -90°.
+    # note: dimensions maze: about 4.6 meter by 3.0 meter (not perfectly square)
+    odometry_topic: /robot_10/odom
+    converted_odometry_topic: /robot_10/converted_odom
+    start_x: 0.2 # meter
+    start_y: 2.7 # meter
+    start_face_direction: negative_x # options: positive_x, positive_y, negative_x, negative_y
+    finish_x: 3.6 # meter
+    finish_y: 2.7 # meter
+    finish_allowed_error: 0.2 # meter
+    print_information: True # boolean
