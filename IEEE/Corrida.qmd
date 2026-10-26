@@ -1,5 +1,5 @@
 ---
-title: "Autonomous Maze Navigation with an iRobot Create 3 Using Infrared Sensing and LiDAR"
+title: "Autonomous Maze Navigation with an iRobot Create 3 Using LiDAR"
 author:
   - name: Marjan Rahimof
     note: "All authors are with the Master Smart Systems Engineering, Hanze University of Applied Sciences, Groningen, The Netherlands. Introduction Project (SEVM25IP), Group 6."
@@ -9,24 +9,30 @@ author:
 tex-author-no-affiliation: true
 abstract: |
   <!-- Write this LAST. 4-6 sentences: problem, solution, key results, conclusion. -->
-  Autonomous navigation through an unknown maze requires a robot to perceive
-  walls, decide on a direction and recover from errors without human input.
-  This paper presents [our solution] for an iRobot Create 3 running ROS 2 Jazzy,
-  using its built-in infrared (IR) proximity sensors, bumpers and a 2D LiDAR.
-  We compare [design A] with [design B] in [N] test runs in the same maze.
-  [Key result with a number, e.g. success rate and mean completion time.]
-  [One-sentence conclusion.]
+  A robot that drives through an unknown maze has to see the walls, choose where
+  to go and get out of trouble on its own. This paper describes a navigation
+  system for an iRobot Create 3 with a 2D LiDAR and a Raspberry Pi 4 running
+  ROS 2 Jazzy. slam_toolbox maps the maze, an explorer node sends the robot to
+  the edges of the known area, preferring the ones towards the finish, and Nav2
+  with an MPPI controller drives it there. In a simulation of the course maze
+  the robot explored the whole maze in 2 minutes without touching a wall. On the
+  real robot it reached the finish in 7 of 13 test runs, at most 0.11 m from it
+  and within 178 s. Exploration on a SLAM map can run on the robot's own
+  Raspberry Pi once the middleware, the message settings and the controller fit
+  the Create 3.
 keywords:
   - mobile robotics
   - maze navigation
-  - wall following
-  - finite-state machine
+  - SLAM
+  - frontier exploration
   - ROS 2
   - LiDAR
 pageheader:
   left: "Introduction Project SEVM25IP, Hanze, October 2026"
   right: "Rahimof et al.: Autonomous Maze Navigation"
-bibliography: bibliography.bib
+bibliography:
+  - bibliography.bib
+  - design-c.bib
 header-includes:
   - |
     \AtBeginDocument{%
@@ -41,134 +47,168 @@ format:
 
 <!-- Rubric 20%: research and analyse the problem. Back every claim with a citation or own test. -->
 
-Autonomous navigation is a core capability of mobile robots: the robot must sense
-its surroundings, decide where to go and act on that decision in a closed loop
-[@benari2018elements; @corke2023robotics]. Maze solving is a classic, well-defined
-version of this problem. [Add 2-3 sentences on why mazes are a useful test case and
-which known strategies exist, with citations.]
+A mobile robot has to sense what is around it, decide where to go and then act on
+that decision, over and over [@benari2018elements; @corke2023robotics]. A maze is a
+good test for this: walls, corridors and loops are easy to build and change, and
+it's easy to see whether the robot made it. One way to solve a maze is to build a
+map while driving. Simultaneous localisation and mapping (SLAM) estimates the
+robot's position and a map of the walls at the same time
+[@macenski2021slamtoolbox], and the robot explores by driving to frontiers, the
+borders between the mapped and the unknown part [@yamauchi1997frontier].
 
 ## Problem statement
 
-The task is to program an iRobot Create 3 so that it drives autonomously from a
-start point to a finish point through a maze it has not seen before. The maze has a
-flat floor and walls at approximately 90° to each other, and it may contain loops.
-The start and finish are revealed only minutes before the demonstration.
+The task is to program an iRobot Create 3 to drive on its own from a start point to
+a finish point through a maze it hasn't seen before. The floor is flat, the walls
+are at about 90° to each other, and the maze can have loops. The start and the
+finish are only given a few minutes before the demonstration.
 
-<!-- Make the research question specific and measurable, never just "best". Example: -->
-This leads to the following research question: *[Which of the two controllers,
-A or B, reaches the finish more often and in less time in a previously unseen maze
-with loops?]*
+<!-- Make the research question specific and measurable, never just "best". -->
+Our research question is: *can frontier exploration on a SLAM map, running only on
+the robot's Raspberry Pi 4, explore an unknown maze with loops and reach a finish
+given relative to the start within one 8-minute run?*
 
 ## System description
 
-The platform consists of the components listed in @tbl-hardware. The Create 3
-publishes its sensor data and receives velocity commands over ROS 2
-[@macenski2022ros2; @create3docs]. Our control software runs as a Python node on
-the Raspberry Pi.
+@tbl-hardware lists the hardware and software. The Create 3 publishes its sensor
+data and takes velocity commands over ROS 2 [@macenski2022ros2; @create3docs]. The
+Raspberry Pi is connected to the Create 3 with USB-C and to the LiDAR with USB. It
+runs the LiDAR driver, SLAM, Nav2 and the explorer node.
 
 ::: {#tbl-hardware layout-ncol=1}
 | Component | Model / version | Role |
 |---|---|---|
-| Mobile base | iRobot Create 3 | wheels, 7 IR proximity sensors, bumpers, odometry |
-| Computer | Raspberry Pi 4 | runs our control node |
+| Mobile base | iRobot Create 3 | wheels, bumper, odometry |
+| Computer | Raspberry Pi 4 | runs SLAM, Nav2 and the explorer |
 | LiDAR | Slamtec RPLiDAR A1M8 | 360° distance measurement [@rplidara1] |
-| Operating system | Ubuntu 24.04 | |
+| Operating system | Ubuntu 24.04 | on the Raspberry Pi |
 | Middleware | ROS 2 Jazzy, Cyclone DDS | communication between nodes |
-| Language | Python [version] | control program |
+| Language | Python 3.12 | explorer node, launch files |
 
 Hardware and software used.
 :::
-
-The seven IR sensors return a dimensionless reflection intensity; a larger value
-means a closer obstacle. They are fused into three directions: *front* is the
-maximum of the four front sensors, *left* is the maximum of the two left sensors
-(side_left and left), and *right* is the single right sensor. The maximum is used
-because the closest wall in a direction determines the robot's reaction.
 
 # Design
 
 <!-- Rubric 25%: design a solution; compare at least 2 designs WITH literature for an 8. -->
 
-## Design A: reactive priority controller
-
-The first design is purely reactive: at 10 Hz it reads the latest IR values and
-applies four rules in priority order (@tbl-reactive). It keeps no memory of earlier
-decisions.
-
-::: {#tbl-reactive layout-ncol=1}
-| Priority | Condition | Action |
-|---|---|---|
-| 1 | $front > 300$ | stop, rotate towards the more open side |
-| 2 | $left > 200$ | drive forward, steer right |
-| 3 | $right > 200$ | drive forward, steer left |
-| 4 | otherwise | drive straight |
-
-Rules of the reactive controller (Design A).
-:::
-
-## Design B: left-hand wall follower as a finite-state machine
-
-The second design implements the left-hand rule [@benari2018elements]: by keeping a
-wall on its left, the robot eventually reaches an exit that is connected to the
-outer wall. Behaviour is organised as a finite-state machine with the states
-FIND_WALL, FOLLOW_WALL, TURN_RIGHT, TURN_LEFT and BACK_UP. Hysteresis
-($front > 300$ to start turning, $front < 150$ to stop) prevents oscillation, and a
-proportional controller keeps a constant distance to the left wall:
-
-$$
-\omega = -K_p \,(left - left_{target})
-$$ {#eq-pcontrol}
-
-where $\omega$ is the angular velocity (rad/s) and $K_p$ the proportional gain.
-
-## Design C: LiDAR-based navigation
-
-[Describe the LiDAR design if it is used in the demo.]
-
-## Comparison of designs
-
-[Compare the designs on memory, robustness to sensor noise, handling of loops and
-dead ends, and implementation effort, with references. Explain which design was
-chosen for the demonstration and why.]
+{{< include _design-c.qmd >}}
 
 # Methods
 
 <!-- Experiments: calibration and validation. Must be reproducible (for a 10). -->
 
-## Calibration of the IR thresholds
+## Tests without the robot
 
-[Describe how the thresholds were measured: distance to wall in cm, number of
-readings, mean and standard deviation.]
+The frontier search and the wall direction code are plain Python. They are tested
+with 32 pytest cases on small hand-drawn maps and made-up scans. The ROS nodes were
+tested without taking up the shared robot. A 271 s recording of a drive through the
+maze, made on the robot on 2 October, was played back through slam_toolbox in a
+separate ROS domain. The explorer's handling of Nav2 goals was checked against a
+fake Nav2 action server.
 
-## Validation experiments
+## Simulation
 
-Each design was tested on the following sequence: a single straight wall, an inside
-corner, an outside corner, and a complete test maze. For each run we recorded
-whether the robot reached the finish, the completion time (s) and the number of
-bumper contacts. [Describe the test maze: size in m, layout, number of loops.]
+Nav2 was tuned in a small 2D simulator written for this project. It stands in for
+the Create 3 and the LiDAR inside the map of the course maze from 12 October. It
+publishes odometry, transforms, scans and the dock, battery and bump topics,
+answers the undock, rotate and reset requests, and treats the robot as a 0.171 m
+disc that stops and reports a bump when it drives into a wall. slam_toolbox, Nav2
+and the explorer ran on top of it without changes, in a separate ROS domain. The
+original pure pursuit settings, a tuned pure pursuit, pure pursuit without its
+collision check and several MPPI settings were compared.
 
-The source code is available at [GitHub link].
+## Runs on the robot
+
+On 20 October there were 13 runs with a finish in the course maze, nine starting on
+the dock and four on the floor. The finish was given as a distance and an angle
+from the start pose. Every run was recorded as a rosbag with the map, pose,
+odometry, scans, transforms, Nav2 plan, velocity commands, goals and bump events. A
+monitor script logged the Raspberry Pi's temperature, the battery and the distance
+to the finish every 10 s, and would stop a run above 82 °C. These runs used the
+development version of the explorer from 20 October.
+
+## Measurements
+
+To compare SLAM settings, one recorded scan with a fixed pose was played to
+slam_toolbox in four configurations, and the cells that stayed unknown at 0--1,
+1--2, 2--3 and 3--4 m from the robot were counted. The CPU load of the explorer was
+measured on the Raspberry Pi; for the Nav2 feedback rate this was done against a
+fake Nav2 server. The code that ran in the demonstration has the tag
+demo-2026-10-23 at <https://github.com/yeoblyv/corrida>.
 
 # Results
 
 <!-- Only facts and numbers here, no interpretation. -->
 
-::: {#tbl-results layout-ncol=1}
-| Design | Runs | Successful | Mean time (s) | Mean bumps |
-|---|---|---|---|---|
-| A: reactive | | | | |
-| B: wall follower | | | | |
+In the simulation (@fig-sim) the original pure pursuit settings got 3.2 m in 4 min
+and got stuck after 100 s. With MPPI the robot explored the whole maze in 2 min,
+drove 10.5 m and never touched a wall. With a finish, it got there in 64 s.
 
-Results of the validation runs in the test maze.
+On the robot the finish was reached in 7 of the 13 runs (@tbl-runs), 0.02--0.11 m
+from it and 40--178 s after the explorer started, with a median of 57 s. One run
+stopped 0.38 m from the finish, two stopped after bumps, and in three the explorer
+found no frontier left before it found the finish. @fig-run shows the longest
+successful run. The highest Pi temperature per run was 72--81 °C. @tbl-results has
+the other measurements.
+
+::: {#tbl-runs layout-ncol=1}
+| Run | Start | Result | Time (s) | Distance (m) |
+|--------|-------|----------------------------|--------|--------|
+| dock1 | dock | no frontier left | 33 | 3.94 |
+| dock2 | dock | no frontier left | 53 | 2.08 |
+| dock3 | dock | finish reached | 178 | 0.02 |
+| dock4 | dock | finish reached | 64 | 0.04 |
+| dock5 | dock | finish reached | 102 | 0.11 |
+| dock9 | dock | stopped after bumps | 115 | 1.38 |
+| dock10 | dock | stopped near finish | 130 | 0.38 |
+| dock11 | dock | finish reached | 51 | 0.05 |
+| mark6 | floor | stopped after bumps | 90 | 1.29 |
+| mark7 | floor | finish reached | 45 | 0.08 |
+| mark8 | floor | finish reached | 40 | 0.04 |
+| spot1 | dock | no frontier left | 102 | 1.36 |
+| spot2 | floor | finish reached | 57 | 0.05 |
+
+Runs on the robot on 20 October. Time is counted from the explorer's first action. Distance is to the finish at the end of the run; for runs that didn't reach it, it's the closest distance in the 10 s monitor log.
 :::
 
-[Report the demonstration result: round 1 and round 2.]
+![Map at the end of run dock3: path (red), goals (orange) and finish (star) with the 0.3 m arrival circle. The robot stopped 0.02 m from the finish.](figures/run-dock3.png){#fig-run width="85%"}
+
+::: {#tbl-results layout-ncol=1}
+| Measurement | Result |
+|-----------------------------------------|---------------------------|
+| Unit tests, frontier search and wall direction | 32 of 32 passing |
+| Unknown cells 3--4 m away, standing robot, travel thresholds 0.2 m / 0 | 95.7 % / 15.9 % |
+| Explorer CPU load, Nav2 feedback at 100 Hz / 20 Hz | about 1/3 / 1/10 of a core |
+| Explorer CPU load, scan and odometry always / only during set-up | 32 % / 18 % of a core |
+| Pi temperature with two explorers running | 83 °C, throttling |
+| Space at which pure pursuit stopped on the robot | 3--7 cm |
+
+Results of the tests and measurements.
+:::
+
+Setting min_pass_through from 2 to 1 on top of zero travel thresholds didn't
+change the share of unknown cells.
 
 # Discussion and conclusion
 
-[Interpret the results in @tbl-results, compare them with literature, name the
-limitations (e.g. looping around free-standing wall sections) and answer the
-research question. End with a conclusion and future work.]
+The results show that the system only works on the Raspberry Pi once three things
+fit the Create 3: the middleware, the reliability of the odometry topic and the
+controller. Most of the CPU load came from Nav2's goal feedback and from handling
+every scan and odometry message. After fixing that, one explorer used about a tenth
+of a core, and the Pi stayed below 82 °C in all runs. Pure pursuit counted a few
+centimetres of space as a hit and got stuck. MPPI looks at the distance to the
+walls along its sampled trajectories, and it explored the whole simulated maze.
+
+On the robot, frontier search with the finish term in @eq-goal reached the finish
+in about half of the runs, always within 3 minutes and closer than 0.11 m. Three
+runs ended with no frontier left before the finish was found, two stopped after
+bumps and one stopped 0.38 m short of the finish.
+
+There are two more limits. slam_toolbox gets slower in long runs, so the bringup is
+restarted before every run. The finish is placed using odometry, so an error of 1°
+in the start heading moves a finish 5 m away by about 9 cm. Overall, frontier
+exploration on a SLAM map with Nav2 works on the Create 3's own Raspberry Pi 4.
 
 # Acknowledgements {.unnumbered}
 
@@ -176,13 +216,13 @@ research question. End with a conclusion and future work.]
 
 ::: {#tbl-contrib layout-ncol=1}
 | Member | Contribution | Share (%) |
-|---|---|---|
+|--------------------|----------------------------------------|----------|
 | Marjan Rahimof | | |
 | Daniel Chiemezie Nwadike | | |
 | Mark Rijpstra | | |
-| Yehor Oblyvantsov | | |
+| Yehor Oblyvantsov | Repository and workflow; LiDAR, SLAM and Nav2 setup; frontier explorer; simulator and robot tests; the navigation system used in the demonstration; Sections II--V of this report | 62 |
 
-Contribution of each group member.
+Contribution of each group member. Share: non-blank lines each member added to the project repository, all branches.
 :::
 
 # References {.unnumbered}
